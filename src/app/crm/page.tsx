@@ -68,9 +68,17 @@ interface JobCandidate {
 }
 
 export default function CRMDashboard() {
+  console.log('🏢 CRM PAGE: CRM Dashboard component mounting');
+  
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'leads' | 'projects' | 'candidates' | 'import'>('leads');
+  
+  console.log('👤 CRM PAGE: User state', {
+    isLoaded,
+    hasUser: !!user,
+    userEmail: user?.emailAddresses[0]?.emailAddress
+  });
   const [leads, setLeads] = useState<Lead[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [candidates, setCandidates] = useState<JobCandidate[]>([]);

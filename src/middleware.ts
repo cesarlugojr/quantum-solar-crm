@@ -22,16 +22,51 @@ const isProtectedRoute = createRouteMatcher([
 // ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  const url = req.url;
+  const pathname = req.nextUrl.pathname;
+  const method = req.method;
+  
+  console.log('🛡️ MIDDLEWARE: Request received', {
+    method,
+    pathname,
+    url,
+    hasClerkKeys: !!(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY),
+    isProtected: isProtectedRoute(req)
+  });
+
   // Skip middleware during build time if Clerk keys are missing
   if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || !process.env.CLERK_SECRET_KEY) {
+    console.log('⚠️ MIDDLEWARE: Missing Clerk keys, skipping auth');
     return NextResponse.next();
   }
 
   // Only protect routes that require authentication
   if (isProtectedRoute(req)) {
-    await auth.protect();
+    console.log('🔒 MIDDLEWARE: Route is protected, checking auth');
+    
+    try {
+      const { userId } = await auth();
+      console.log('🔐 MIDDLEWARE: Auth check result', {
+        hasUserId: !!userId,
+        userIdPrefix: userId ? userId.substring(0, 8) + '...' : null
+      });
+      
+      if (!userId) {
+        console.log('❌ MIDDLEWARE: No user found, calling auth.protect()');
+      } else {
+        console.log('✅ MIDDLEWARE: User authenticated, allowing access');
+      }
+      
+      await auth.protect();
+    } catch (error) {
+      console.error('💥 MIDDLEWARE: Auth error', error);
+      throw error;
+    }
+  } else {
+    console.log('🔓 MIDDLEWARE: Route not protected, allowing through');
   }
 
+  console.log('➡️ MIDDLEWARE: Proceeding with request');
   return NextResponse.next();
 });
 

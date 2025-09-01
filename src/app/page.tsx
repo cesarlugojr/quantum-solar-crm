@@ -9,11 +9,24 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 
 export default async function Home() {
-  const { userId } = await auth();
+  console.log('🏠 ROOT PAGE: Starting home page render');
   
-  if (!userId) {
+  try {
+    const { userId } = await auth();
+    console.log('🔐 ROOT PAGE: Auth check completed', { 
+      hasUserId: !!userId, 
+      userIdPrefix: userId ? userId.substring(0, 8) + '...' : null 
+    });
+    
+    if (!userId) {
+      console.log('❌ ROOT PAGE: No user ID found, redirecting to sign-in');
+      redirect('/sign-in');
+    }
+    
+    console.log('✅ ROOT PAGE: User authenticated, redirecting to CRM');
+    redirect('/crm');
+  } catch (error) {
+    console.error('💥 ROOT PAGE: Error in auth check', error);
     redirect('/sign-in');
   }
-  
-  redirect('/crm');
 }
