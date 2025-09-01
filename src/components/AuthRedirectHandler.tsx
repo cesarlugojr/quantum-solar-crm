@@ -1,12 +1,10 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function AuthRedirectHandler() {
   const { user, isLoaded } = useUser();
-  const router = useRouter();
   
   useEffect(() => {
     console.log('🔄 AUTH HANDLER: useEffect triggered', { isLoaded, hasUser: !!user });
