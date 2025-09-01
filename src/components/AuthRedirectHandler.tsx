@@ -10,17 +10,29 @@ export default function AuthRedirectHandler() {
     console.log('🔄 AUTH HANDLER: useEffect triggered', { isLoaded, hasUser: !!user });
     
     if (isLoaded) {
+      const currentPath = window.location.pathname;
+      console.log('🔄 AUTH HANDLER: Current path:', currentPath);
+      
       if (!user) {
-        console.log('❌ AUTH HANDLER: No user found, redirecting to sign-in');
-        console.log('🔄 AUTH HANDLER: Attempting redirect with window.location');
-        // Use window.location for more reliable redirect
-        window.location.href = '/sign-in';
+        // Only redirect to sign-in if not already there
+        if (currentPath !== '/sign-in') {
+          console.log('❌ AUTH HANDLER: No user found, redirecting to sign-in');
+          console.log('🔄 AUTH HANDLER: Attempting redirect with window.location');
+          window.location.href = '/sign-in';
+        } else {
+          console.log('ℹ️ AUTH HANDLER: Already on sign-in page, staying here');
+        }
       } else {
-        console.log('✅ AUTH HANDLER: User authenticated, redirecting to CRM', {
-          userEmail: user.emailAddresses[0]?.emailAddress
-        });
-        console.log('🔄 AUTH HANDLER: Attempting redirect with window.location');
-        window.location.href = '/crm';
+        // Only redirect to CRM if not already there
+        if (!currentPath.startsWith('/crm')) {
+          console.log('✅ AUTH HANDLER: User authenticated, redirecting to CRM', {
+            userEmail: user.emailAddresses[0]?.emailAddress
+          });
+          console.log('🔄 AUTH HANDLER: Attempting redirect with window.location');
+          window.location.href = '/crm';
+        } else {
+          console.log('ℹ️ AUTH HANDLER: Already in CRM, staying here');
+        }
       }
     }
   }, [isLoaded, user]);
