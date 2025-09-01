@@ -143,7 +143,7 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
               </Button>
 
               {/* Sign Out Button */}
-              <SignOutButton redirectUrl="https://quantumsolar.us">
+              <SignOutButton>
                 <Button 
                   variant="ghost" 
                   size="sm" 
