@@ -42,8 +42,6 @@ export function ConditionalClerkProvider({ children }: ConditionalClerkProviderP
       signInFallbackRedirectUrl={process.env.NEXT_PUBLIC_CLERK_FALLBACK_REDIRECT_URL}
       signUpFallbackRedirectUrl={process.env.NEXT_PUBLIC_CLERK_FALLBACK_REDIRECT_URL}
       afterSignOutUrl="/"
-      afterSignInUrl={undefined}
-      afterSignUpUrl={undefined}
     >
       {children}
     </ClerkProvider>

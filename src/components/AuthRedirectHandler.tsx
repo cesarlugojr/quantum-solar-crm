@@ -14,15 +14,18 @@ export default function AuthRedirectHandler() {
     if (isLoaded) {
       if (!user) {
         console.log('❌ AUTH HANDLER: No user found, redirecting to sign-in');
-        router.push('/sign-in');
+        console.log('🔄 AUTH HANDLER: Attempting redirect with window.location');
+        // Use window.location for more reliable redirect
+        window.location.href = '/sign-in';
       } else {
         console.log('✅ AUTH HANDLER: User authenticated, redirecting to CRM', {
           userEmail: user.emailAddresses[0]?.emailAddress
         });
-        router.push('/crm');
+        console.log('🔄 AUTH HANDLER: Attempting redirect with window.location');
+        window.location.href = '/crm';
       }
     }
-  }, [isLoaded, user, router]);
+  }, [isLoaded, user]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
