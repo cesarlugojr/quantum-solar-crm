@@ -30,7 +30,8 @@ export default clerkMiddleware(async (auth, req) => {
     pathname,
     url,
     hasClerkKeys: !!(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY),
-    isProtected: isProtectedRoute(req)
+    isProtected: isProtectedRoute(req),
+    userAgent: req.headers.get('user-agent')?.substring(0, 50)
   });
 
   // Skip middleware during build time if Clerk keys are missing
