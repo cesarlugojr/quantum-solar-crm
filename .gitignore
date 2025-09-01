@@ -1,0 +1,64 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+.env.local
+.env.production
+.env.development
+
+# Sensitive credential files - DO NOT COMMIT
+SUPABASE_CREDENTIALS.md
+
+# MCP and AI tool configurations with sensitive data
+# Note: cline_mcp_settings.json should be reviewed before committing
+# to ensure no API keys are included
+.cursor/mcp.json
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+node_modules/
+.next/
+dist/
+*.log
+.DS_Store
+*.mp4
+*.mov
+*.avi
