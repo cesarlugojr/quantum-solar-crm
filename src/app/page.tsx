@@ -1,35 +1,47 @@
 /**
  * CRM Root Page
  * 
- * Root page for CRM-only application that handles authentication.
- * Redirects authenticated users to CRM dashboard.
+ * Root page for CRM-only application that handles client-side authentication check.
+ * Uses client-side redirect to avoid server-side routing conflicts.
  */
 
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+'use client';
 
-// Force this page to be dynamic (not statically generated)
-export const dynamic = 'force-dynamic';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-export default async function Home() {
-  console.log('🏠 ROOT PAGE: Starting home page render');
+export default function Home() {
+  console.log('🏠 ROOT PAGE: Starting client-side home page render');
   
-  try {
-    const { userId } = await auth();
-    console.log('🔐 ROOT PAGE: Auth check completed', { 
-      hasUserId: !!userId, 
-      userIdPrefix: userId ? userId.substring(0, 8) + '...' : null 
-    });
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
+  
+  useEffect(() => {
+    console.log('🔄 ROOT PAGE: useEffect triggered', { isLoaded, hasUser: !!user });
     
-    if (!userId) {
-      console.log('❌ ROOT PAGE: No user ID found, redirecting to sign-in');
-      redirect('/sign-in');
+    if (isLoaded) {
+      if (!user) {
+        console.log('❌ ROOT PAGE: No user found, redirecting to sign-in');
+        router.push('/sign-in');
+      } else {
+        console.log('✅ ROOT PAGE: User authenticated, redirecting to CRM', {
+          userEmail: user.emailAddresses[0]?.emailAddress
+        });
+        router.push('/crm');
+      }
     }
-    
-    console.log('✅ ROOT PAGE: User authenticated, redirecting to CRM');
-    redirect('/crm');
-  } catch (error) {
-    console.error('💥 ROOT PAGE: Error in auth check', error);
-    redirect('/sign-in');
-  }
+  }, [isLoaded, user, router]);
+
+  console.log('🏠 ROOT PAGE: Rendering loading state');
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-white text-lg">Loading Quantum Solar CRM...</p>
+        <p className="text-gray-400 text-sm mt-2">Checking authentication status</p>
+      </div>
+    </div>
+  );
 }
