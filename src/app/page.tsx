@@ -9,15 +9,24 @@
 
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+export const dynamic = 'force-dynamic';
 
 export default function Home() {
   console.log('🏠 ROOT PAGE: Starting client-side home page render');
   
+  const [isClient, setIsClient] = useState(false);
   const { user, isLoaded } = useUser();
   const router = useRouter();
   
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
+  useEffect(() => {
+    if (!isClient) return;
+    
     console.log('🔄 ROOT PAGE: useEffect triggered', { isLoaded, hasUser: !!user });
     
     if (isLoaded) {
@@ -31,7 +40,7 @@ export default function Home() {
         router.push('/crm');
       }
     }
-  }, [isLoaded, user, router]);
+  }, [isClient, isLoaded, user, router]);
 
   console.log('🏠 ROOT PAGE: Rendering loading state');
   

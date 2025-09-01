@@ -30,7 +30,7 @@ export function ConditionalClerkProvider({ children }: ConditionalClerkProviderP
 
   if (!isClient) {
     console.log('🔄 CLERK PROVIDER: Still hydrating, showing children without Clerk context');
-    return <>{children}</>;
+    return <div suppressHydrationWarning>{children}</div>;
   }
 
   console.log('✅ CLERK PROVIDER: Rendering with ClerkProvider');
