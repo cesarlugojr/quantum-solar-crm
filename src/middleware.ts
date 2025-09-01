@@ -6,7 +6,6 @@ const isProtectedRoute = createRouteMatcher([
   '/crm(.*)',
   '/api/crm(.*)',
   '/api/integrations(.*)',
-  '/api/chatbot(.*)',
 ]);
 
 // Define admin-only routes (currently unused - for future implementation)
@@ -29,19 +28,7 @@ export default clerkMiddleware(async (auth, req) => {
 
   // Only protect routes that require authentication
   if (isProtectedRoute(req)) {
-    const { userId } = await auth();
-    
-    // Redirect to sign-in if not authenticated
-    if (!userId) {
-      // Redirect to CRM subdomain sign-in page
-      const signInUrl = new URL('/sign-in', 'https://crm.quantumsolar.us');
-      signInUrl.searchParams.set('redirect_url', req.url);
-      return NextResponse.redirect(signInUrl);
-    }
-
-    // For development: Skip role-based restrictions to prevent access-denied loops
-    // All authenticated users get full access
-    console.log('✅ Authenticated user accessing:', req.url);
+    await auth.protect();
   }
 
   return NextResponse.next();
