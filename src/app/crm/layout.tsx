@@ -35,9 +35,40 @@ interface CRMLayoutProps {
 }
 
 export default function CRMLayout({ children }: CRMLayoutProps) {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  console.log('🏢 CRM LAYOUT: Rendering', { isLoaded, hasUser: !!user });
+
+  // Redirect to sign-in if not authenticated
+  if (isLoaded && !user) {
+    console.log('❌ CRM LAYOUT: No user found, redirecting to sign-in');
+    router.push('/sign-in');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">Redirecting to sign-in...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading while auth is being checked
+  if (!isLoaded) {
+    console.log('🔄 CRM LAYOUT: Loading auth state');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading CRM...</p>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('✅ CRM LAYOUT: User authenticated, rendering CRM');
 
   // Role-based access control
   const getUserRole = () => {

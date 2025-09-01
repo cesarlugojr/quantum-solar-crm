@@ -2,9 +2,8 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 // Define protected routes that require authentication
-// Note: Root route (/) handles auth in page component to avoid redirect loops
+// Note: CRM pages will handle auth client-side to avoid redirect conflicts
 const isProtectedRoute = createRouteMatcher([
-  '/crm(.*)',
   '/api/crm(.*)',
   '/api/integrations(.*)',
 ]);
