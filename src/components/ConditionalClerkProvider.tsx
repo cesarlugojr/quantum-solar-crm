@@ -17,7 +17,14 @@ export function ConditionalClerkProvider({ children }: ConditionalClerkProviderP
       publicKeyPrefix: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.substring(0, 15),
       signInUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
       fallbackUrl: process.env.NEXT_PUBLIC_CLERK_FALLBACK_REDIRECT_URL,
-      windowLocation: typeof window !== 'undefined' ? window.location.href : 'SSR'
+      windowLocation: typeof window !== 'undefined' ? window.location.href : 'SSR',
+      // More detailed environment debugging for production
+      allClerkEnvs: {
+        publicKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+        signInUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
+        signUpUrl: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
+        fallbackUrl: process.env.NEXT_PUBLIC_CLERK_FALLBACK_REDIRECT_URL
+      }
     });
     setIsClient(true);
   }, []);
