@@ -8,12 +8,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 
 export const dynamic = 'force-dynamic';
 
 // Dynamic import of the auth redirect component to prevent SSR issues
-const AuthRedirectHandler = dynamic(() => import('@/components/AuthRedirectHandler'), {
+const AuthRedirectHandler = dynamicImport(() => import('@/components/AuthRedirectHandler'), {
   ssr: false,
   loading: () => (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
