@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Quantum Solar CRM is a Next.js 15 application focused exclusively on customer relationship management for a Florida-based solar installation company. The project uses TypeScript, Tailwind CSS, shadcn/ui components, Supabase for database, and Clerk for authentication. This is the internal CRM system separated from the customer-facing website, designed for managing leads, projects, and team operations.
+Quantum Solar CRM is a Next.js 15 application focused exclusively on customer relationship management for a Illinois-based solar installation company. The project uses TypeScript, Tailwind CSS, shadcn/ui components, Supabase for database, and Clerk for authentication. This is the internal CRM system separated from the customer-facing website, designed for managing leads, projects, and team operations.
 
 ## Development Commands
 
