@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 
 export default function SignInPage() {
   const [isClient, setIsClient] = useState(false);
-  const [debugInfo, setDebugInfo] = useState({});
   const clerk = useClerk();
   const { user, isLoaded } = useUser();
   
@@ -22,7 +21,7 @@ export default function SignInPage() {
     });
     
     setIsClient(true);
-  }, []);
+  }, [clerk, isLoaded, user]);
   
   useEffect(() => {
     if (isClient) {
@@ -45,7 +44,6 @@ export default function SignInPage() {
       };
       
       console.log('🔑 SIGN-IN PAGE: Client state updated', info);
-      setDebugInfo(info);
       
       // Log when Clerk is ready
       if (clerk) {
