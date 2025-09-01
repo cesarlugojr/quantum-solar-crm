@@ -22,6 +22,11 @@ const isProtectedRoute = createRouteMatcher([
 // ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // Skip middleware during build time if Clerk keys are missing
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || !process.env.CLERK_SECRET_KEY) {
+    return NextResponse.next();
+  }
+
   // Only protect routes that require authentication
   if (isProtectedRoute(req)) {
     const { userId } = await auth();

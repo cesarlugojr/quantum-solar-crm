@@ -35,7 +35,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { ConditionalNavigation } from "@/components/ConditionalNavigation";
 import { FooterSection } from "@/components/FooterSection";
-import { ClerkProvider } from '@clerk/nextjs';
+import { ConditionalClerkProvider } from "@/components/ConditionalClerkProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -235,7 +235,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           `}
         </Script>
 
-        <ClerkProvider>
+        <ConditionalClerkProvider>
           {/* 
             Layout Structure
             - Navigation fixed at top
@@ -249,7 +249,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           <FooterSection />
           <SpeedInsights />
           <Analytics />
-        </ClerkProvider>
+        </ConditionalClerkProvider>
       </body>
     </html>
   );

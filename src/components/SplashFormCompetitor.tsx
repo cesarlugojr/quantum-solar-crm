@@ -536,7 +536,7 @@ export function SplashFormCompetitor() {
 
       // Track Google Analytics conversion event
       if (typeof window !== 'undefined' && (window as Window & {gtag?: (...args: unknown[]) => void}).gtag) {
-        (window as Window & {gtag: (...args: unknown[]) => void}).gtag('event', 'conversion_event_submit_lead_form', {
+        (window as Window & {gtag?: (...args: unknown[]) => void}).gtag!('event', 'conversion_event_submit_lead_form', {
           form_type: 'ameren_illinois_splash_competitor',
           homeowner_status: formData.homeownerStatus,
           credit_score: formData.creditScore,

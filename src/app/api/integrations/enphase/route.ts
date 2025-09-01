@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
           const summaryResponse = await fetch(`${process.env.ENPHASE_API_URL}/systems/${systemId}/summary`, {
             headers: {
               'Authorization': `Bearer ${process.env.ENPHASE_API_KEY}`,
-              'User-ID': process.env.ENPHASE_API_USER_ID!,
+              'User-ID': process.env.ENPHASE_API_USER_ID || 'placeholder-user-id',
               'Content-Type': 'application/json'
             }
           });

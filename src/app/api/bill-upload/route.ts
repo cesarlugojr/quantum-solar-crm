@@ -18,7 +18,7 @@ import { google } from 'googleapis';
 import { Resend } from 'resend';
 import { PassThrough } from 'stream';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY || 'placeholder-resend-key');
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = [
