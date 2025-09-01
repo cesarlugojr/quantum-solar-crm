@@ -33,8 +33,8 @@ export default clerkMiddleware(async (auth, req) => {
     
     // Redirect to sign-in if not authenticated
     if (!userId) {
-      // Always redirect to main domain sign-in page
-      const signInUrl = new URL('/sign-in', 'https://quantumsolar.us');
+      // Redirect to CRM subdomain sign-in page
+      const signInUrl = new URL('/sign-in', 'https://crm.quantumsolar.us');
       signInUrl.searchParams.set('redirect_url', req.url);
       return NextResponse.redirect(signInUrl);
     }
