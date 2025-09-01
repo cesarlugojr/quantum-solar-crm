@@ -7,7 +7,6 @@
 
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 
@@ -31,7 +30,6 @@ export default function Home() {
   console.log('🏠 ROOT PAGE: Starting client-side home page render');
   
   const [isClient, setIsClient] = useState(false);
-  const router = useRouter();
   
   useEffect(() => {
     setIsClient(true);
