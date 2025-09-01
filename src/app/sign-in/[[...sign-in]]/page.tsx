@@ -82,7 +82,7 @@ export default function SignInPage() {
                     socialButtonsPlacement: "top"
                   }
                 }}
-                redirectUrl="/crm"
+                fallbackRedirectUrl="/crm"
               />
             </div>
           </CardContent>
