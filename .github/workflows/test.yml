@@ -1,0 +1,128 @@
+name: Test Suite
+on:
+  push:
+    branches: [ main, from-mobile-foundation ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          fail_ci_if_error: true
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://get.supabase.com | sh
+          echo "/home/runner/.local/bin" >> $GITHUB_PATH
+      - name: Start Supabase
+        run: supabase start --db-port 54322
+      - name: Run database tests
+        run: npm run test:db
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      - name: Build application
+        run: npm run build
+      - name: Run Playwright tests
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  visual-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for Chromatic
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Publish to Chromatic
+        uses: chromaui/action@v1
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  coverage-gate:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Check coverage threshold
+        run: |
+          npm run test:coverage
+          # Ensure coverage meets 90% requirement
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "Coverage file not found"
+            exit 1
+          fi
+
+          COVERAGE=$(node -p "Math.min(
+            JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json')).total.lines.pct,
+            JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json')).total.functions.pct,
+            JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json')).total.branches.pct,
+            JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json')).total.statements.pct
+          )")
+
+          echo "Current coverage: ${COVERAGE}%"
+
+          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+            echo "❌ Coverage ${COVERAGE}% is below required 90%"
+            exit 1
+          else
+            echo "✅ Coverage ${COVERAGE}% meets requirement"
+          fi

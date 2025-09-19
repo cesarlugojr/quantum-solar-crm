@@ -17,7 +17,8 @@
     "test:db": "./scripts/test-database.sh",
     "test:all": "npm run test && npm run test:e2e && npm run test:db",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "chromatic": "chromatic --exit-zero-on-changes"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.4",
@@ -57,6 +58,7 @@
     "@storybook/addon-docs": "^9.1.7",
     "@storybook/addon-onboarding": "^9.1.7",
     "@storybook/addon-vitest": "^9.1.7",
+    "@storybook/nextjs-vite": "^9.1.7",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -65,6 +67,7 @@
     "@types/react-dom": "^18",
     "@vitejs/plugin-react": "^5.0.3",
     "@vitest/coverage-v8": "^3.2.4",
+    "chromatic": "^13.2.0",
     "eslint": "^8",
     "eslint-config-next": "15.0.3",
     "eslint-plugin-storybook": "^9.1.7",
@@ -74,7 +77,6 @@
     "storybook": "^9.1.7",
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
-    "vitest": "^3.2.4",
-    "@storybook/nextjs-vite": "^9.1.7"
+    "vitest": "^3.2.4"
   }
 }
