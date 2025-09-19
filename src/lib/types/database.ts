@@ -265,7 +265,7 @@ export interface InstallationEquipment {
   invoice_number: string | null
   
   // Performance data
-  performance_data: Record<string, any> | null
+  performance_data: Record<string, unknown> | null
   last_maintenance_date: string | null
   next_maintenance_due: string | null
   
