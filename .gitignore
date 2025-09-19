@@ -62,3 +62,6 @@ dist/
 *.mp4
 *.mov
 *.avi
+
+*storybook.log
+storybook-static
