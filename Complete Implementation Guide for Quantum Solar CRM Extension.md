@@ -1131,43 +1131,391 @@ export function ProjectPhoto({ photo }) {
 }
 ```
 
-## Part 6: Implementation Roadmap
+## Part 6: Testing & QA Framework
 
-### Phase 1: Foundation (Weeks 1-2)
-- **Database Migration**: Execute schema updates, create custom ID functions
-- **RLS Configuration**: Implement security policies
-- **Basic CRUD Operations**: Update existing forms to use new fields
-- **TCPA Compliance**: Add consent tracking to lead forms
+### 6.1 Testing Strategy Overview
 
-### Phase 2: Mobile Foundation (Weeks 3-4)
-- **Monorepo Setup**: Configure Turborepo structure
-- **React Native Project**: Initialize with Expo
-- **PowerSync Integration**: Configure offline database
-- **Basic UI Components**: Create shared component library
+Implement a comprehensive multi-layer testing approach for enterprise-grade reliability:
 
-### Phase 3: Core Mobile Features (Weeks 5-6)
-- **Photo Capture**: Implement camera with categorization
-- **Location Tracking**: Configure background geolocation
-- **Offline Sync**: Complete PowerSync configuration
-- **Digital Signatures**: Add signature capture
+```typescript
+// Testing Architecture
+tests/
+├── unit/                      # Component and utility testing
+├── integration/               # API and database testing
+├── e2e/                       # End-to-end user workflows
+├── visual/                    # UI regression testing
+├── performance/               # Load and stress testing
+└── security/                  # Authentication and RLS testing
+```
 
-### Phase 4: Integrations (Weeks 7-8)
-- **Google Drive**: Implement folder creation and file upload
-- **Google Calendar**: Add appointment scheduling
-- **SMS/Email**: Configure Twilio and Resend
-- **Partner APIs**: Create adapter pattern
+### 6.2 Primary Testing Stack: Vitest + React Testing Library
 
-### Phase 5: Real-time & Performance (Week 9)
-- **Real-time Subscriptions**: Configure Supabase channels
-- **Dashboard Updates**: Implement live data updates
-- **Query Optimization**: Add indexes and optimize queries
-- **Caching Layer**: Configure React Query
+**Advantages over Jest for 2025:**
+- 5-10x faster execution with native ESM support
+- Better Next.js 15 App Router compatibility
+- Hot Module Replacement during test development
+- Native TypeScript support without configuration
 
-### Phase 6: Testing & Deployment (Week 10)
-- **End-to-end Testing**: Complete user flow tests
-- **Performance Testing**: Load test with expected data volumes
-- **Mobile App Deployment**: Submit to app stores
-- **Production Migration**: Deploy with zero downtime
+```typescript
+// vitest.config.ts
+import { defineConfig } from 'vitest/config'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./tests/setup.ts'],
+    globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      threshold: {
+        global: {
+          branches: 90,
+          functions: 90,
+          lines: 90,
+          statements: 90
+        }
+      }
+    }
+  }
+})
+```
+
+### 6.3 End-to-End Testing: Playwright
+
+**Superior to Cypress for CRM applications:**
+- Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- Mobile viewport testing built-in
+- Better TypeScript developer experience
+- Faster execution and more reliable
+- Built-in screenshot/video recording
+
+```typescript
+// tests/e2e/sales-pipeline.spec.ts
+import { test, expect } from '@playwright/test'
+
+test('Complete sales pipeline flow', async ({ page }) => {
+  // Lead creation from splash form
+  await page.goto('/state-promotions/illinois/ameren-il')
+  await page.fill('[data-testid="first-name"]', 'Jane')
+  await page.fill('[data-testid="email"]', 'jane@example.com')
+  await page.click('[data-testid="submit-form"]')
+
+  // Verify QSLID generation
+  await expect(page.locator('[data-testid="lead-id"]')).toContainText('QSLID')
+
+  // Convert to opportunity (QSOID)
+  await page.click('[data-testid="create-opportunity"]')
+  await expect(page.locator('[data-testid="opportunity-id"]')).toContainText('QSOID')
+
+  // Convert to project (QSPID)
+  await page.click('[data-testid="create-project"]')
+  await expect(page.locator('[data-testid="project-id"]')).toContainText('QSPID')
+})
+```
+
+### 6.4 Database Testing Strategy
+
+**Supabase Testing with Local Instance:**
+```bash
+# Local Supabase for testing
+supabase start --db-port 54322
+supabase db reset --db-url postgresql://localhost:54322/postgres
+```
+
+```sql
+-- tests/database/custom-ids.test.sql
+BEGIN;
+SELECT plan(4);
+
+-- Test custom ID generation
+SELECT ok(
+  generate_lead_id() ~ '^QSLID\d{6}$',
+  'Lead ID follows correct format'
+);
+
+SELECT ok(
+  generate_project_id() ~ '^QSPID\d{6}$',
+  'Project ID follows correct format'
+);
+
+-- Test RLS policies
+SET ROLE 'sales_rep';
+SELECT ok(
+  (SELECT COUNT(*) FROM splash_leads WHERE assigned_to != current_user_id()) = 0,
+  'Sales rep can only see assigned leads'
+);
+
+SELECT finish();
+ROLLBACK;
+```
+
+### 6.5 Visual Regression Testing
+
+**Chromatic + Storybook for UI Consistency:**
+```typescript
+// .storybook/main.ts
+export default {
+  stories: ['../src/**/*.stories.@(js|jsx|ts|tsx)'],
+  addons: [
+    '@storybook/addon-essentials',
+    '@storybook/addon-a11y',
+    '@chromatic-com/storybook'
+  ],
+  framework: {
+    name: '@storybook/nextjs',
+    options: {}
+  }
+}
+
+// src/components/LeadCard/LeadCard.stories.ts
+export default {
+  title: 'CRM/LeadCard',
+  component: LeadCard,
+  parameters: {
+    chromatic: {
+      viewports: [320, 1200],
+      delay: 300
+    }
+  }
+}
+
+export const Default = {
+  args: {
+    lead: {
+      custom_id: 'QSLID000001',
+      first_name: 'John',
+      last_name: 'Doe',
+      status: 'qualified',
+      lead_score: 85
+    }
+  }
+}
+```
+
+### 6.6 Performance Testing Framework
+
+**K6 Load Testing for CRM Workflows:**
+```javascript
+// tests/performance/crm-load.js
+import http from 'k6/http'
+import { check, group } from 'k6'
+
+export let options = {
+  stages: [
+    { duration: '2m', target: 50 },   // Ramp up
+    { duration: '5m', target: 100 },  // Stay at 100 concurrent users
+    { duration: '2m', target: 0 },    // Ramp down
+  ],
+  thresholds: {
+    http_req_duration: ['p(95)<200'], // 95% of requests under 200ms
+    http_req_failed: ['rate<0.01'],   // Error rate under 1%
+  }
+}
+
+export default function () {
+  group('Lead Management', () => {
+    let response = http.get('http://localhost:3000/api/leads')
+    check(response, {
+      'leads endpoint responds': (r) => r.status === 200,
+      'response time acceptable': (r) => r.timings.duration < 200,
+    })
+  })
+
+  group('Project Pipeline', () => {
+    let response = http.get('http://localhost:3000/api/projects')
+    check(response, {
+      'projects load quickly': (r) => r.timings.duration < 300,
+    })
+  })
+}
+```
+
+### 6.7 Mobile App Testing Strategy
+
+**React Native Testing with Detox:**
+```javascript
+// e2e/mobile/photo-capture.e2e.js
+describe('Mobile Photo Capture', () => {
+  beforeAll(async () => {
+    await device.launchApp()
+    await loginAsInstaller()
+  })
+
+  it('should capture and sync project photos', async () => {
+    await element(by.text('QSPID000001')).tap()
+    await element(by.id('capture-roof-overview')).tap()
+
+    // Simulate photo capture
+    await element(by.id('camera-capture')).tap()
+    await expect(element(by.text('Photo captured'))).toBeVisible()
+
+    // Test offline mode
+    await device.setNetworkTimeout(0)
+    await element(by.id('sync-photos')).tap()
+    await expect(element(by.text('Sync pending'))).toBeVisible()
+
+    // Restore connection and verify sync
+    await device.setNetworkTimeout(10000)
+    await expect(element(by.text('Sync complete'))).toBeVisible()
+  })
+})
+```
+
+### 6.8 Security Testing Implementation
+
+**Authentication and Authorization Testing:**
+```typescript
+// tests/security/auth.test.ts
+describe('Authentication Security', () => {
+  it('should enforce RLS policies', async () => {
+    const salesRep = await createTestUser('sales_rep')
+    const unauthorizedLead = await createTestLead({ assigned_to: 'other_user' })
+
+    // Attempt to access unauthorized lead
+    const response = await request(app)
+      .get(`/api/leads/${unauthorizedLead.id}`)
+      .set('Authorization', `Bearer ${salesRep.token}`)
+
+    expect(response.status).toBe(403)
+    expect(response.body.error).toContain('Insufficient permissions')
+  })
+
+  it('should validate TCPA consent', async () => {
+    const leadData = {
+      email: 'test@example.com',
+      tcpa_consent: false
+    }
+
+    const response = await request(app)
+      .post('/api/leads')
+      .send(leadData)
+
+    expect(response.status).toBe(400)
+    expect(response.body.error).toContain('TCPA consent required')
+  })
+})
+```
+
+### 6.9 CI/CD Integration
+
+**GitHub Actions Testing Pipeline:**
+```yaml
+# .github/workflows/test.yml
+name: Test Suite
+on: [push, pull_request]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run test:unit
+      - run: npm run test:coverage
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx supabase start
+      - run: npm run test:integration
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm ci
+      - run: npx playwright install
+      - run: npm run build
+      - run: npm run test:e2e
+
+  visual-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run chromatic
+        env:
+          CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_TOKEN }}
+```
+
+### 6.10 Testing Coverage Requirements
+
+**Quality Gates:**
+- **Unit Tests**: 90% code coverage minimum
+- **Integration Tests**: 100% API endpoint coverage
+- **E2E Tests**: 100% critical user journey coverage
+- **Visual Tests**: 100% component story coverage
+- **Performance**: All pages < 2s load time
+- **Security**: Zero high/critical vulnerabilities
+
+## Part 7: Implementation Roadmap
+
+### Phase 1: Database Architecture Extensions (Weeks 1-2) ✅ COMPLETED
+- **✅ Custom ID System**: QSLID, QSOID, QSPID, QSIID generation functions
+- **✅ Enhanced Schema**: Solar industry-specific fields and tables
+- **✅ RLS Configuration**: Role-based security policies
+- **✅ Performance Indexes**: Optimized query performance
+- **✅ Migration Framework**: Automated database setup process
+
+### Phase 2: Testing & QA Foundation (Weeks 3-4)
+- **Testing Infrastructure**: Implement Vitest + React Testing Library
+- **E2E Framework**: Set up Playwright for cross-browser testing
+- **Database Testing**: Configure Supabase local testing with pg_prove
+- **Visual Regression**: Implement Chromatic + Storybook for UI consistency
+- **Security Testing**: Authentication and RLS policy validation
+- **CI/CD Pipeline**: Automated testing with 90% coverage requirements
+
+### Phase 3: Mobile Foundation (Weeks 5-6)
+- **Monorepo Setup**: Configure Turborepo structure with testing
+- **React Native Project**: Initialize with Expo and testing setup
+- **PowerSync Integration**: Configure offline database with test mocks
+- **Shared Component Library**: Create tested UI components
+- **Mobile Testing**: Detox setup for React Native E2E testing
+
+### Phase 4: Core Mobile Features (Weeks 7-8)
+- **Photo Capture System**: Camera with categorization and offline storage
+- **Location Tracking**: Background geolocation with privacy compliance
+- **Offline Sync**: Complete PowerSync with conflict resolution
+- **Digital Signatures**: Signature capture with validation
+- **Mobile Performance**: Testing and optimization for field conditions
+
+### Phase 5: Integrations & APIs (Weeks 9-10)
+- **Google Drive Integration**: Automated folder creation and file management
+- **Google Calendar Sync**: Two-way appointment scheduling
+- **SMS/Email Automation**: TCPA-compliant communication system
+- **Partner API Gateway**: Unified integration architecture
+- **Integration Testing**: Comprehensive API and service testing
+
+### Phase 6: Real-time & Performance (Week 11)
+- **Real-time Subscriptions**: Supabase channels for live updates
+- **Dashboard Optimization**: Live data updates with performance testing
+- **Caching Strategy**: React Query with cache invalidation
+- **Performance Monitoring**: Load testing and optimization
+- **Scalability Testing**: Multi-user concurrent testing
+
+### Phase 7: Production Deployment (Week 12)
+- **Mobile App Deployment**: App store submission with testing validation
+- **Production Migration**: Zero-downtime deployment with rollback plans
+- **Monitoring Setup**: Error tracking, performance monitoring, alerting
+- **User Training**: Team onboarding with tested documentation
+- **Go-Live Support**: Post-deployment monitoring and support
 
 ## Key Success Metrics
 
