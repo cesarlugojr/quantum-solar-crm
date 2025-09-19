@@ -34,8 +34,18 @@ interface CRMLayoutProps {
   children: React.ReactNode;
 }
 
+function useUserSafe() {
+  try {
+    return useUser();
+  } catch {
+    // If ClerkProvider is not available, return safe defaults
+    console.warn('ClerkProvider not available, returning safe defaults');
+    return { user: null, isLoaded: true };
+  }
+}
+
 export default function CRMLayout({ children }: CRMLayoutProps) {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useUserSafe();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -174,15 +184,26 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
               </Button>
 
               {/* Sign Out Button */}
-              <SignOutButton>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+              {user ? (
+                <SignOutButton>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-400 hover:text-red-300"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </SignOutButton>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="text-red-400 hover:text-red-300"
+                  onClick={() => router.push('/sign-in')}
                 >
                   <LogOut className="h-5 w-5" />
                 </Button>
-              </SignOutButton>
+              )}
             </div>
           </div>
         </div>
