@@ -51,20 +51,4 @@ export const Outline: Story = {
   },
 };
 
-export const LeadStatuses: Story = {
-  render: () => (
-    <div className="flex gap-2 flex-wrap">
-      <Badge variant="default">New</Badge>
-      <Badge variant="secondary">Qualified</Badge>
-      <Badge variant="outline">Contacted</Badge>
-      <Badge variant="destructive">Disqualified</Badge>
-    </div>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Various badge variants used for lead statuses in the CRM system.',
-      },
-    },
-  },
-};
+// Multiple badges removed for now - will add in proper TSX story later

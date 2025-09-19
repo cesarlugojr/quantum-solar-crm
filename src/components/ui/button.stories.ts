@@ -69,20 +69,4 @@ export const Large: Story = {
   },
 };
 
-export const CRMActions: Story = {
-  render: () => (
-    <div className="flex gap-2 flex-wrap">
-      <Button variant="default">Add Lead</Button>
-      <Button variant="outline">View Details</Button>
-      <Button variant="secondary">Edit</Button>
-      <Button variant="destructive" size="sm">Delete</Button>
-    </div>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Common button combinations used in the CRM interface.',
-      },
-    },
-  },
-};
+// Multiple buttons removed for now - will add in proper TSX story later
