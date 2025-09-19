@@ -10,7 +10,7 @@
 
 import { useUser, SignOutButton } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -39,6 +39,13 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Handle redirect to sign-in if not authenticated
+  useEffect(() => {
+    if (isLoaded && !user) {
+      router.push('/sign-in');
+    }
+  }, [isLoaded, user, router]);
+
   // Show loading while auth is being checked
   if (!isLoaded) {
     return (
@@ -51,9 +58,8 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
     );
   }
 
-  // Redirect to sign-in if not authenticated
+  // Show redirecting message if not authenticated
   if (isLoaded && !user) {
-    router.push('/sign-in');
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
         <div className="text-center">
