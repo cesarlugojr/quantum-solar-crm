@@ -63,9 +63,9 @@ export default function ProjectsPage() {
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = searchTerm === '' ||
-      project.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.custom_id.toLowerCase().includes(searchTerm.toLowerCase());
+      (project.customer_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (project.address || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (project.custom_id || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesFilter = filterStatus === 'all' || project.overall_status === filterStatus;
 

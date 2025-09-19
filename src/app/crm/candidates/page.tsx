@@ -52,9 +52,9 @@ export default function CandidatesPage() {
 
   const filteredCandidates = candidates.filter(candidate => {
     const matchesSearch = searchTerm === '' ||
-      `${candidate.first_name} ${candidate.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.position_applied.toLowerCase().includes(searchTerm.toLowerCase());
+      `${candidate.first_name || ''} ${candidate.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (candidate.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (candidate.position_applied || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = filterStatus === 'all' || candidate.status === filterStatus;
     const matchesPosition = filterPosition === 'all' || candidate.position_applied === filterPosition;

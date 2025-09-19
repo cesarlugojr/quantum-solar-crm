@@ -46,9 +46,9 @@ export default function LeadsPage() {
 
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = searchTerm === '' ||
-      `${lead.first_name} ${lead.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.custom_id.toLowerCase().includes(searchTerm.toLowerCase());
+      `${lead.first_name || ''} ${lead.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lead.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lead.custom_id || '').toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesFilter = filterStatus === 'all' || lead.status === filterStatus;
 
