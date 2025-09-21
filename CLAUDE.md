@@ -1,93 +1,287 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides comprehensive guidance to Claude Code (claude.ai/code) when working with the Quantum Solar CRM codebase. Follow these instructions exactly as written to ensure consistent, high-quality development that aligns with project standards and business requirements.
 
-## Project Overview
+## 🏢 Project Overview
 
-Quantum Solar CRM is a Next.js 15 application focused exclusively on customer relationship management for a Illinois-based solar installation company. The project uses TypeScript, Tailwind CSS, shadcn/ui components, Supabase for database, and Clerk for authentication. This is the internal CRM system separated from the customer-facing website, designed for managing leads, projects, and team operations.
+**Quantum Solar CRM** is a comprehensive Next.js 15 application for Quantum Solar Enterprises LLC, a Florida-based solar installation company focused on restoring faith in the residential solar industry through transparency and exceptional service.
 
-## Development Commands
+### Business Context
+- **Company**: Quantum Solar Enterprises LLC (DBA Quantum Solar)
+- **Industry**: Residential solar installation and energy solutions
+- **Mission**: Restore faith in residential solar industry through transparency
+- **Service Areas**:
+  - Primary: Florida (full-service installations)
+  - Secondary: Illinois (Ameren utility territory promotions)
+  - Tertiary: Nationwide facilitation and consulting
+- **Core Values**: Transparency, customer-first approach, industry innovation
 
-### Core Commands
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint (ensure no errors before committing)
+### Application Purpose
+The platform serves multiple business functions:
+1. **Lead Generation**: Multi-step forms with TCPA compliance for solar lead capture
+2. **CRM Operations**: Comprehensive customer relationship management system
+3. **Project Management**: 11-stage solar installation pipeline tracking
+4. **HR Management**: Job candidate application and tracking system
+5. **Analytics**: Performance tracking and conversion optimization
+6. **Integration Hub**: Third-party solar industry API integrations
 
-### Environment Requirements
-- Supabase credentials (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY)
-- Clerk authentication keys
-- Google Analytics and Facebook Pixel tracking codes
-- Various API keys for integrations (Twilio, Enphase, Google Solar API)
+**Key Enhancement**: The project follows the **Enhanced Complete Implementation Guide** which leverages 150+ open source solar industry projects including pvlib-python (NREL calculations), WatermelonDB (offline-first mobile), TimescaleDB (time-series optimization), and enterprise integrations.
 
-## Project Architecture
+## 💻 Development Commands & Workflow
 
-### Tech Stack
-- **Framework**: Next.js 15 with App Router
+### Essential Commands
+```bash
+# Development
+npm run dev                  # Start development server with Turbopack
+npm run build               # Build for production
+npm run start               # Start production server
+npm run lint                # Run ESLint (MUST pass before committing)
+
+# Testing
+npm run test                # Run unit tests
+npm run test:coverage       # Run tests with coverage report
+npm run test:e2e            # Run end-to-end tests with Playwright
+npm run test:all            # Run complete test suite (lint + tests + e2e)
+
+# Quality Assurance
+npm run storybook           # Launch Storybook for component development
+npm run chromatic           # Run visual regression tests
+```
+
+### Pre-Commit Requirements (CRITICAL)
+**Before any commit, you MUST run and ensure these pass:**
+1. `npm run lint` - Zero ESLint errors allowed
+2. `npm run test` - All unit tests must pass
+3. TypeScript compilation must succeed
+4. No console.error or console.warn in production code
+
+### Environment Configuration
+Create a `.env.local` file with these required variables:
+
+#### Core Platform (Required)
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+```
+
+#### Analytics & Communication (Recommended)
+```env
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+NEXT_PUBLIC_GTM_ID=GTM-XXXXXXX
+NEXT_PUBLIC_FACEBOOK_PIXEL_ID=1234567890123456
+NOTIFICATION_EMAIL=cesar@quantumsolar.us
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+#### Solar Industry APIs (Planned)
+```env
+GOOGLE_SOLAR_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ENPHASE_API_KEY=your_enphase_api_key
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+## 🏗️ Tech Stack & Architecture
+
+### Core Technologies
+- **Framework**: Next.js 15 with App Router and Turbopack
 - **Language**: TypeScript (strict mode enabled)
 - **Styling**: Tailwind CSS + shadcn/ui components
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Clerk (with middleware protection)
-- **Analytics**: Google Analytics, Google Tag Manager, Facebook Pixel
+- **Database**: Supabase (PostgreSQL) with real-time subscriptions
+- **Authentication**: Clerk with Next.js middleware integration
 - **Form Handling**: React Hook Form with Zod validation
-- **Deployment**: Vercel
+- **State Management**: React Context + Session Storage
+- **Analytics**: Google Analytics 4, Google Tag Manager, Facebook Pixel
+- **Email Service**: Resend for transactional emails
+- **Deployment**: Vercel with automatic Git deployments
 
-### Key Directory Structure
+### Enhanced Solar Industry Features (Planned)
+- **Solar Calculations**: pvlib-python microservice + NREL's SAM for financial modeling
+- **Time-Series Data**: TimescaleDB extension for 353x faster solar production queries
+- **Mobile Operations**: React Native + Expo with WatermelonDB for offline-first architecture
+- **Real-time Monitoring**: OpenEMS integration + Sunalyzer vendor-independent dashboards
+- **API Gateway**: Kong for enterprise partner integrations
+- **Automation**: ActivePieces for no-code workflow automation
+
+### Project Structure
 ```
 src/
-├── app/                          # Next.js App Router pages
-│   ├── api/                      # API routes
-│   │   ├── crm/                  # CRM-related endpoints
-│   │   ├── integrations/         # Third-party API integrations
-│   │   └── [other-endpoints]/
-│   ├── crm/                      # CRM dashboard pages (protected)
-│   ├── state-promotions/         # Location-specific landing pages
-│   │   └── illinois/ameren-il/   # Multi-step lead capture flow
-│   └── [other-pages]/
-├── components/                   # Reusable React components
-│   ├── ui/                      # shadcn/ui base components
-│   └── [business-components]/
-└── lib/                         # Utility functions and configurations
+├── 📁 app/                          # Next.js App Router
+│   ├── 📁 api/                      # Backend API routes
+│   │   ├── 📁 crm/                  # CRM management endpoints
+│   │   │   ├── leads/               # Lead CRUD operations
+│   │   │   ├── projects/            # Project management APIs
+│   │   │   └── candidates/          # HR candidate management
+│   │   ├── 📁 integrations/         # Third-party API integrations
+│   │   ├── contact/                 # Contact form submission APIs
+│   │   ├── upload/                  # File upload handling
+│   │   └── webhooks/                # External service webhooks
+│   ├── 📁 crm/                      # Protected CRM dashboard
+│   │   ├── page.tsx                 # Main CRM dashboard
+│   │   ├── leads/[id]/              # Individual lead management
+│   │   ├── projects/[id]/           # Project detail pages
+│   │   ├── candidates/[id]/         # Candidate profiles
+│   │   └── layout.tsx               # CRM layout with navigation
+│   ├── 📁 state-promotions/         # Geographic targeting campaigns
+│   │   └── 📁 illinois/             # Illinois-specific campaigns
+│   │       └── 📁 ameren-il/        # Ameren utility promotion
+│   │           ├── 📁 homeowner/    # Initial qualification steps
+│   │           ├── 📁 first-name/   # Progressive data collection
+│   │           ├── 📁 consent/      # TCPA compliance handling
+│   │           ├── 📁 thank-you/    # Conversion confirmation
+│   │           └── 📁 disqualified/ # Non-qualified lead routing
+│   ├── 📁 splash/                   # Alternative form flows
+│   ├── 📁 sign-up/                  # User registration pages
+│   ├── layout.tsx                   # Root application layout
+│   ├── page.tsx                     # Homepage
+│   └── globals.css                  # Global styles and Tailwind imports
+├── 📁 components/                   # Reusable React components
+│   ├── 📁 ui/                       # shadcn/ui base components
+│   ├── 📁 forms/                    # Business form components
+│   ├── 📁 crm/                      # CRM-specific components
+│   ├── 📁 layout/                   # Layout components
+│   └── 📁 analytics/                # Tracking components
+└── 📁 lib/                          # Utility functions and configurations
+    ├── supabase.ts                  # Supabase client configuration
+    ├── clerk.ts                     # Clerk authentication setup
+    ├── utils.ts                     # General utility functions
+    ├── validations.ts               # Zod schema definitions
+    └── constants.ts                 # Application constants
 ```
 
-### Authentication & Authorization
-- Protected routes use Clerk middleware (see `src/middleware.ts`)
-- CRM routes (`/crm/*`) require authentication
-- Role-based access control planned but currently all authenticated users have full access
-- Session storage used extensively for multi-step forms to prevent data loss
+### Database Architecture
+- **Primary Database**: Supabase (PostgreSQL) with Row Level Security (RLS)
+- **Real-time Subscriptions**: Supabase channels for live project updates
+- **Type Safety**: Auto-generated TypeScript types from database schema
+- **Core Tables**:
+  - `contact_submissions` - Lead capture and contact forms
+  - `projects` - CRM project management with 11-stage pipeline
+  - `candidates` - Job applicant and contractor management
+  - `file_uploads` - Document and photo storage
+  - `activity_log` - User action tracking and audit trail
 
-### Database Integration
-- Supabase client configured in `src/lib/supabase.ts`
-- Type-safe database interfaces defined for leads, projects, candidates
-- Contact submissions stored in `contact_submissions` table
-- Handles graceful fallbacks when environment variables are missing
+### Authentication & Security
+- **Clerk Integration**: Modern authentication with social login support
+- **Protected Routes**: Middleware-based route protection for CRM areas
+- **Environment Variables**: Sensitive data stored securely
+- **Input Validation**: Zod schema validation for all form inputs
+- **TCPA Compliance**: Legal consent mechanisms for communications
 
-### Form Architecture
-The application features sophisticated multi-step forms with several patterns:
+## 📋 Core Business Logic & Patterns
 
-#### Lead Capture Forms
+### Lead Capture Form Architecture
+The application's primary business function is solar lead capture through sophisticated multi-step forms:
+
+#### Form Flow Pattern (CRITICAL - Follow Exactly)
+```typescript
+// 1. Session ID Generation
+const sessionId = `QSLID-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+// 2. Progressive Data Collection with Real-time Validation
+const formSteps = [
+  'homeowner-qualification',
+  'personal-info-collection',
+  'contact-details',
+  'tcpa-consent',           // CRITICAL: Step 4 for legal compliance
+  'utility-information',
+  'property-details',
+  'financial-qualification',
+  'final-submission'
+];
+
+// 3. Session Storage Backup (After Each Step)
+const saveFormProgress = (stepData: Partial<FormData>) => {
+  try {
+    const existingData = JSON.parse(sessionStorage.getItem(sessionId) || '{}');
+    const updatedData = { ...existingData, ...stepData };
+    sessionStorage.setItem(sessionId, JSON.stringify(updatedData));
+  } catch (error) {
+    console.error('Failed to save form progress:', error);
+  }
+};
+
+// 4. TCPA/SMS Consent Handling (Step 4 - LEGALLY REQUIRED)
+const handleTCPAConsent = (consentData: TCPAConsentData) => {
+  // Must collect explicit consent for SMS/phone communication
+  const consentRecord = {
+    consent_tcpa: consentData.tcpaConsent,
+    consent_sms: consentData.smsConsent,
+    consent_timestamp: new Date().toISOString(),
+    ip_address: getClientIP(),
+    user_agent: navigator.userAgent,
+  };
+
+  saveFormProgress({ ...consentData, ...consentRecord });
+};
+
+// 5. Final Submission to Supabase + Email Notifications
+const submitLead = async (formData: CompleteFormData) => {
+  try {
+    const { data: leadRecord } = await supabase
+      .from('contact_submissions')
+      .insert(formData)
+      .select()
+      .single();
+
+    await sendLeadNotificationEmail(leadRecord);
+    trackConversionEvent('lead_submitted', leadRecord);
+
+    return leadRecord;
+  } catch (error) {
+    console.error('Lead submission failed:', error);
+    throw error;
+  }
+};
+```
+
+#### Key Form Components
 - **SplashForm**: 13-step Illinois Ameren promotion form with TCPA compliance
-- **SplashFormCompetitor**: Alternative competitor-focused form structure  
-- Session storage persistence across all steps to prevent data loss
-- Early TCPA consent collection (step 4) for abandoned lead follow-up
-- Conditional disqualification logic based on responses
-- Real-time validation with Zod schemas
+- **SplashFormCompetitor**: Alternative competitor-focused form structure
+- **ContactForm**: General contact form for inquiries
+- **Session Persistence**: Automatic form data backup to prevent loss
+- **Conditional Logic**: Smart routing based on qualification criteria
 
-#### Form Flow Pattern
-1. Session ID generation (`QSLID-` prefix for lead IDs)
-2. Progressive data collection with validation
-3. Session storage backup after each step
-4. TCPA/SMS consent handling
-5. Conditional routing based on responses
-6. Final submission to Supabase + email notifications
+### CRM System Architecture
+The CRM system manages the complete solar installation lifecycle:
 
-### CRM System
-- Comprehensive dashboard with role-based views
-- Lead management with status tracking
-- Project milestone tracking (11-stage pipeline planned)
-- Job candidate management system
-- Photo submission system for site surveys/installations
-- Import functionality for bulk project data
+#### Project Status Pipeline (11 Stages)
+```typescript
+type ProjectStatus =
+  | 'lead'                    // Initial lead received
+  | 'contacted'               // First contact made
+  | 'qualified'               // Lead qualified for solar
+  | 'proposal_sent'           // Solar proposal delivered
+  | 'contract_signed'         // Customer signed contract
+  | 'permits_submitted'       // Permits submitted to AHJ
+  | 'permits_approved'        // Permits approved by AHJ
+  | 'installation_scheduled'  // Installation date set
+  | 'installation_complete'   // Solar system installed
+  | 'inspection_passed'       // System passed inspection
+  | 'pto_granted';           // Permission to Operate granted
+
+// Project status transitions must follow this sequence
+const validateStatusTransition = (currentStatus: ProjectStatus, newStatus: ProjectStatus): boolean => {
+  const statusOrder = [
+    'lead', 'contacted', 'qualified', 'proposal_sent', 'contract_signed',
+    'permits_submitted', 'permits_approved', 'installation_scheduled',
+    'installation_complete', 'inspection_passed', 'pto_granted'
+  ];
+
+  const currentIndex = statusOrder.indexOf(currentStatus);
+  const newIndex = statusOrder.indexOf(newStatus);
+
+  return newIndex >= currentIndex;
+};
+```
+
+#### CRM Features
+- **Lead Management**: Comprehensive lead tracking with status progression
+- **Project Pipeline**: 11-stage project milestone tracking system
+- **Candidate Management**: Job applicant and contractor management
+- **Photo Submission**: Site survey and installation documentation
+- **Bulk Import**: Excel-based project data import functionality
+- **Real-time Dashboard**: Live metrics and KPI tracking
 
 ### Component Patterns
 - All components use TypeScript with proper interfaces
@@ -96,12 +290,17 @@ The application features sophisticated multi-step forms with several patterns:
 - Accessibility compliance with ARIA labels and keyboard navigation
 - Error boundaries and loading states throughout
 
-### API Architecture
-- RESTful endpoints under `/api/`
-- CRM endpoints for leads, projects, candidates management
-- Integration endpoints for Twilio, Enphase, Google Solar API
-- Consistent error handling and response formats
-- Environment validation in API routes
+### Enhanced API Architecture
+- **RESTful Endpoints**: Organized under `/api/` with consistent patterns
+- **Solar Calculations**: `/api/solar/` endpoints integrating pvlib-python microservice
+- **Real-time Monitoring**: `/api/monitoring/` for OpenEMS and Sunalyzer data ingestion
+- **CRM Operations**: Enhanced `/api/crm/` with solar-specific project lifecycle
+- **Partner Integrations**: Kong API gateway managing third-party solar industry APIs
+- **Time-Series Data**: Optimized endpoints for TimescaleDB solar production queries
+- **Mobile Sync**: PowerSync endpoints for offline-first mobile synchronization
+- **Workflow Automation**: ActivePieces webhook endpoints for automated processes
+- **TCPA Compliance**: Automated communication endpoints with legal compliance
+- **Error Handling**: Comprehensive error tracking with solar industry context
 
 ## Code Style Guidelines (from .cursorrules)
 
@@ -140,11 +339,17 @@ The application features sophisticated multi-step forms with several patterns:
 - Small, focused commits
 - Regular merging from main branch
 
-### Testing Requirements
-- Run `npm run lint` before committing (no ESLint errors allowed)
-- Test responsive design across devices
-- Validate form flows end-to-end
-- Check API integrations in development
+### Enhanced Testing Requirements (90% Coverage Minimum)
+- **Unit Tests**: Run `npm run test` with Vitest (5-10x faster than Jest)
+- **Integration Tests**: `npm run test:integration` with local Supabase instance
+- **E2E Tests**: `npm run test:e2e` with Playwright cross-browser testing
+- **Database Tests**: `npm run test:db` with pgTAP for PostgreSQL validation
+- **Visual Regression**: `npm run chromatic` for UI consistency
+- **Performance Tests**: Load testing with k6 for solar calculation endpoints
+- **Mobile Tests**: Detox testing for React Native offline functionality (planned)
+- **Solar Accuracy**: Validation against NREL data for calculation precision
+- **Coverage Gates**: 90% minimum coverage across all test types
+- **ESLint**: Zero errors before committing (automated in CI/CD)
 
 ### Common Tasks
 
@@ -156,34 +361,52 @@ The application features sophisticated multi-step forms with several patterns:
 5. Set up email notifications
 6. Add analytics tracking
 
-#### CRM Feature Development
-1. Define TypeScript interfaces for new data types
-2. Create Supabase table schema and API endpoints
-3. Build UI components with proper role-based access
-4. Implement real-time data updates
-5. Add mobile responsiveness
+#### Enhanced CRM Feature Development
+1. Define TypeScript interfaces following solar industry standards
+2. Create TimescaleDB schemas for time-series data (if applicable)
+3. Implement Supabase RLS policies for role-based access
+4. Build UI components with Tremor analytics (for dashboards)
+5. Add real-time subscriptions for live updates
+6. Create corresponding mobile components for field operations
+7. Write comprehensive tests (unit, integration, E2E)
+8. Validate against NREL standards (for solar calculations)
 
-#### Integration Development
-1. Create API routes under `/api/integrations/`
-2. Handle authentication and rate limiting
-3. Implement error handling and logging
-4. Add TypeScript types for external API responses
-5. Create corresponding UI components
+#### Solar Integration Development
+1. Create microservice endpoints under `/services/`
+2. Implement Kong API gateway routing and security
+3. Add pvlib-python calculation endpoints with caching
+4. Create ActivePieces workflows for automation
+5. Build real-time monitoring dashboards with OpenEMS/Sunalyzer
+6. Add TimescaleDB queries for performance analytics
+7. Implement mobile sync with WatermelonDB/PowerSync
+8. Add comprehensive error handling and monitoring
 
 ## Key Integrations
 
-### Current Integrations
-- **Supabase**: Database, authentication, file storage
-- **Clerk**: User authentication and session management
+### Current Integrations (Foundation)
+- **Supabase**: PostgreSQL database with TimescaleDB extension for time-series
+- **Clerk**: User authentication, session management, and role-based access control
 - **Analytics**: Google Analytics, Google Tag Manager, Facebook Pixel
-- **Email**: Resend for transactional emails
-- **Excel Processing**: xlsx for project import functionality
+- **Email**: Resend for TCPA-compliant transactional emails
+- **Testing Framework**: Vitest + Playwright + Chromatic for comprehensive QA
+- **UI Components**: shadcn/ui + Tremor for analytics dashboards
 
-### Planned Integrations
-- **Twilio**: SMS notifications and two-way messaging
-- **Google Solar API**: Solar potential calculations and roof analysis
-- **Enphase API**: Solar system monitoring and performance data
-- **Calendar Systems**: Appointment scheduling integration
+### Solar Industry Integrations (Enhanced)
+- **pvlib-python**: NREL-standard solar production calculations (microservice)
+- **SAM (System Advisor Model)**: NREL financial modeling for bankable reports
+- **TimescaleDB**: 353x faster time-series queries for production monitoring
+- **OpenEMS**: Enterprise energy management for commercial solar projects
+- **Sunalyzer**: Vendor-independent solar monitoring dashboards
+- **Kong API Gateway**: Enterprise-grade partner integration management
+
+### Mobile & Automation (Planned Implementation)
+- **WatermelonDB**: Offline-first mobile database with PowerSync synchronization
+- **React Native Camera**: Photo capture with geolocation for field operations
+- **ActivePieces**: No-code workflow automation for business processes
+- **Twilio**: TCPA-compliant SMS notifications and two-way messaging
+- **Google Solar API**: Roof analysis and solar potential calculations
+- **Enphase API**: Real-time solar system performance monitoring
+- **Google Workspace**: Calendar, Drive, and Gmail integration for project management
 
 ## Performance Considerations
 
@@ -202,10 +425,30 @@ The application features sophisticated multi-step forms with several patterns:
 - API rate limiting should be implemented for production
 - Never commit secrets or API keys to the repository
 
-## Mobile Considerations
+---
 
-- Mobile-first responsive design approach
-- Touch-friendly interface elements
-- Photo capture functionality for field operations
-- Offline capability planned for mobile app
-- Progressive Web App (PWA) features configured
+## 🎯 Summary & Quick Reference
+
+**CRITICAL REMINDERS:**
+1. **ALWAYS** run `npm run lint` before committing - zero errors allowed
+2. **ALWAYS** collect TCPA consent in step 4 of lead forms
+3. **ALWAYS** use TypeScript strict mode - no `any` types
+4. **ALWAYS** implement proper error boundaries and loading states
+5. **ALWAYS** save form progress to session storage
+6. **ALWAYS** validate environment variables on app start
+7. **ALWAYS** follow the established component and API patterns
+
+**BUSINESS PRIORITIES:**
+1. Lead capture form optimization and conversion
+2. CRM system functionality and user experience
+3. Mobile-responsive design and performance
+4. Analytics tracking and conversion attribution
+5. TCPA compliance and legal requirements
+
+**PERFORMANCE TARGETS:**
+- Lighthouse Performance: 90+
+- Form load time: < 1 second per step
+- Bundle size: < 400KB total JavaScript
+- Test coverage: > 80% for critical business logic
+
+Follow these guidelines exactly to ensure consistent, high-quality development that serves Quantum Solar's business objectives and maintains code quality standards.
