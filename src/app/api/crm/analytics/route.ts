@@ -25,7 +25,7 @@ const analyticsFiltersSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // Authentication
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
