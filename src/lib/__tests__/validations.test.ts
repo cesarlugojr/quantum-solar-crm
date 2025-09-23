@@ -3,7 +3,6 @@ import {
   projectSchema,
   projectUpdateSchema,
   contactSubmissionSchema,
-  stageAdvancementSchema,
   validateRequestBody,
   validateSearchParams,
   projectFiltersSchema,

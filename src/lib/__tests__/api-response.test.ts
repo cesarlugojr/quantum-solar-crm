@@ -14,7 +14,6 @@ import {
   internalServerErrorResponse,
   handleDatabaseError,
   handleApiError,
-  requireAuth,
   checkRateLimit,
   logApiRequest,
   healthCheckResponse,
@@ -37,7 +36,7 @@ const mockConsole = {
   error: vi.fn(),
   log: vi.fn(),
 };
-global.console = mockConsole as any;
+global.console = mockConsole as typeof console;
 
 describe('API Response Utilities', () => {
   beforeEach(() => {
@@ -47,7 +46,7 @@ describe('API Response Utilities', () => {
   describe('Success Responses', () => {
     it('should create a success response', () => {
       const data = { id: 1, name: 'Test' };
-      const response = successResponse(data, 'Success message');
+      successResponse(data, 'Success message');
 
       expect(NextResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({

@@ -6,17 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import {
   Search,
-  Filter,
-  Plus,
-  MoreHorizontal,
   Phone,
   Mail,
-  Calendar,
   TrendingUp,
   Users,
   Target,
@@ -72,7 +67,7 @@ export const EnhancedLeadsDashboard = () => {
   const { toast } = useToast();
 
   // Real-time lead updates handler
-  const handleLeadUpdate = useCallback((payload: any) => {
+  const handleLeadUpdate = useCallback((payload: Record<string, unknown>) => {
     const { eventType, new: newRecord, old: oldRecord } = payload;
 
     setLeads(prevLeads => {
@@ -110,21 +105,7 @@ export const EnhancedLeadsDashboard = () => {
     setLastUpdated(new Date());
   }, [toast]);
 
-  useEffect(() => {
-    fetchLeads();
-    fetchStats();
-
-    // Set up real-time subscriptions
-    const leadSubscription = crmRealtime.subscribeToLeads(handleLeadUpdate);
-    setRealtimeConnected(true);
-
-    return () => {
-      crmRealtime.disconnect();
-      setRealtimeConnected(false);
-    };
-  }, [handleLeadUpdate]);
-
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -150,7 +131,21 @@ export const EnhancedLeadsDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, searchTerm, toast]);
+
+  useEffect(() => {
+    fetchLeads();
+    fetchStats();
+
+    // Set up real-time subscriptions
+    crmRealtime.subscribeToLeads(handleLeadUpdate);
+    setRealtimeConnected(true);
+
+    return () => {
+      crmRealtime.disconnect();
+      setRealtimeConnected(false);
+    };
+  }, [handleLeadUpdate, fetchLeads]);
 
   const fetchStats = async () => {
     try {

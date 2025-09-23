@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -10,7 +10,7 @@ export interface ApiResponse<T = any> {
   requestId?: string;
 }
 
-export interface PaginatedApiResponse<T = any> extends ApiResponse<T[]> {
+export interface PaginatedApiResponse<T = unknown> extends ApiResponse<T[]> {
   pagination?: {
     page: number;
     limit: number;
@@ -126,7 +126,7 @@ export function internalServerErrorResponse(message: string = 'Internal server e
 }
 
 // Database error handler
-export function handleDatabaseError(error: any): NextResponse<ApiResponse> {
+export function handleDatabaseError(error: { code?: string; message?: string }): NextResponse<ApiResponse> {
   console.error('Database error:', error);
 
   // PostgreSQL error codes
@@ -180,6 +180,7 @@ export function handleApiError(error: unknown): NextResponse<ApiResponse> {
 }
 
 // Authentication middleware helper
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function requireAuth(request: Request): Promise<{ userId: string } | NextResponse> {
   try {
     const { auth } = await import('@clerk/nextjs/server');

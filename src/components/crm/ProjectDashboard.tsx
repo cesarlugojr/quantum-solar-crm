@@ -231,7 +231,7 @@ export const ProjectDashboard = () => {
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(stats.monthly_revenue)}</div>
               <p className="text-xs text-muted-foreground">
-                This month's revenue
+                This month&apos;s revenue
               </p>
             </CardContent>
           </Card>

@@ -6,21 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import {
   TrendingUp,
-  TrendingDown,
   DollarSign,
-  Users,
-  Calendar,
   Target,
   PieChart,
   BarChart3,
   Activity,
-  Zap,
-  RefreshCw,
-  Wifi,
-  WifiOff
+  Zap
 } from "lucide-react";
 import { crmRealtime } from '@/lib/realtime-crm';
 import { useToast } from '@/hooks/use-toast';
@@ -42,24 +35,18 @@ interface AnalyticsData {
   };
 }
 
-interface TeamPerformance {
-  total_leads: number;
-  converted_leads: number;
-  avg_response_time: number;
-  revenue_generated: number;
-}
 
 export const AnalyticsDashboard = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('30d');
   const [activeTab, setActiveTab] = useState('overview');
-  const [realtimeConnected, setRealtimeConnected] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [, setRealtimeConnected] = useState(false);
+  const [, setLastUpdated] = useState<Date | null>(null);
   const { toast } = useToast();
 
   // Real-time updates handler for projects and leads
-  const handleDataUpdate = useCallback((payload: any) => {
+  const handleDataUpdate = useCallback((payload: Record<string, unknown>) => {
     // Refresh analytics when significant changes occur
     if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
       fetchAnalyticsData();
@@ -71,29 +58,9 @@ export const AnalyticsDashboard = () => {
         duration: 2000,
       });
     }
-  }, [toast]);
+  }, [toast, fetchAnalyticsData]);
 
-  useEffect(() => {
-    fetchAnalyticsData();
-
-    // Set up real-time subscriptions for analytics updates
-    const projectSubscription = crmRealtime.subscribeToProjects(handleDataUpdate);
-    const leadSubscription = crmRealtime.subscribeToLeads(handleDataUpdate);
-    setRealtimeConnected(true);
-
-    // Auto-refresh every 5 minutes
-    const refreshInterval = setInterval(() => {
-      fetchAnalyticsData();
-    }, 5 * 60 * 1000);
-
-    return () => {
-      crmRealtime.disconnect();
-      clearInterval(refreshInterval);
-      setRealtimeConnected(false);
-    };
-  }, [timeRange, handleDataUpdate]);
-
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/crm/analytics?timeRange=${timeRange}&includeTimeSeries=true`);
@@ -112,7 +79,27 @@ export const AnalyticsDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange, toast]);
+
+  useEffect(() => {
+    fetchAnalyticsData();
+
+    // Set up real-time subscriptions for analytics updates
+    crmRealtime.subscribeToProjects(handleDataUpdate);
+    crmRealtime.subscribeToLeads(handleDataUpdate);
+    setRealtimeConnected(true);
+
+    // Auto-refresh every 5 minutes
+    const refreshInterval = setInterval(() => {
+      fetchAnalyticsData();
+    }, 5 * 60 * 1000);
+
+    return () => {
+      crmRealtime.disconnect();
+      clearInterval(refreshInterval);
+      setRealtimeConnected(false);
+    };
+  }, [timeRange, handleDataUpdate, fetchAnalyticsData]);
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {

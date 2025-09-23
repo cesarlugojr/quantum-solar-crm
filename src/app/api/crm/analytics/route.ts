@@ -116,16 +116,17 @@ export async function GET(request: NextRequest) {
 }
 
 // Helper functions for different analytics sections
-async function getProjectStats(supabase: any, startDate: Date, filters: any) {
-  const { data: projects } = await supabase
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getProjectStats(supabaseClient: typeof supabase, startDate: Date, _filters: Record<string, unknown>) {
+  const { data: projects } = await supabaseClient
     .from('projects')
     .select('id, current_stage_varchar, overall_status, project_value, created_at')
     .gte('created_at', startDate.toISOString())
     .order('created_at', { ascending: false });
 
   const total = projects?.length || 0;
-  const active = projects?.filter((p: any) => p.overall_status === 'active').length || 0;
-  const completed = projects?.filter((p: any) => p.overall_status === 'completed').length || 0;
+  const active = projects?.filter((p: Record<string, unknown>) => p.overall_status === 'active').length || 0;
+  const completed = projects?.filter((p: Record<string, unknown>) => p.overall_status === 'completed').length || 0;
 
   return {
     total,
@@ -136,17 +137,18 @@ async function getProjectStats(supabase: any, startDate: Date, filters: any) {
   };
 }
 
-async function getLeadStats(supabase: any, startDate: Date, filters: any) {
-  const { data: leads } = await supabase
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getLeadStats(supabaseClient: typeof supabase, startDate: Date, _filters: Record<string, unknown>) {
+  const { data: leads } = await supabaseClient
     .from('contact_submissions')
     .select('id, status, lead_score, created_at, estimated_system_value')
     .gte('created_at', startDate.toISOString())
     .order('created_at', { ascending: false });
 
   const total = leads?.length || 0;
-  const qualified = leads?.filter((l: any) => l.status === 'qualified').length || 0;
-  const converted = leads?.filter((l: any) =>
-    ['contract_signed', 'installation_complete', 'pto_granted'].includes(l.status)
+  const qualified = leads?.filter((l: Record<string, unknown>) => l.status === 'qualified').length || 0;
+  const converted = leads?.filter((l: Record<string, unknown>) =>
+    ['contract_signed', 'installation_complete', 'pto_granted'].includes(l.status as string)
   ).length || 0;
 
   const conversionRate = total > 0 ? Math.round((converted / total) * 100) : 0;
@@ -159,32 +161,33 @@ async function getLeadStats(supabase: any, startDate: Date, filters: any) {
     conversionRate,
     qualificationRate,
     avgLeadScore: leads?.length > 0
-      ? Math.round(leads.reduce((sum: number, l: any) => sum + (l.lead_score || 0), 0) / leads.length)
+      ? Math.round(leads.reduce((sum: number, l: Record<string, unknown>) => sum + ((l.lead_score as number) || 0), 0) / leads.length)
       : 0
   };
 }
 
-async function getRevenueStats(supabase: any, startDate: Date, filters: any) {
-  const { data: projects } = await supabase
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getRevenueStats(supabaseClient: typeof supabase, startDate: Date, _filters: Record<string, unknown>) {
+  const { data: projects } = await supabaseClient
     .from('projects')
     .select('project_value, overall_status, created_at')
     .gte('created_at', startDate.toISOString());
 
-  const { data: leads } = await supabase
+  const { data: leads } = await supabaseClient
     .from('contact_submissions')
     .select('estimated_system_value, status')
     .gte('created_at', startDate.toISOString());
 
   const completedRevenue = projects
-    ?.filter((p: any) => p.overall_status === 'completed')
-    .reduce((sum: number, p: any) => sum + (p.project_value || 0), 0) || 0;
+    ?.filter((p: Record<string, unknown>) => p.overall_status === 'completed')
+    .reduce((sum: number, p: Record<string, unknown>) => sum + ((p.project_value as number) || 0), 0) || 0;
 
   const pipelineValue = leads
-    ?.filter((l: any) => !['disqualified', 'lost'].includes(l.status))
-    .reduce((sum: number, l: any) => sum + (l.estimated_system_value || 0), 0) || 0;
+    ?.filter((l: Record<string, unknown>) => !['disqualified', 'lost'].includes(l.status as string))
+    .reduce((sum: number, l: Record<string, unknown>) => sum + ((l.estimated_system_value as number) || 0), 0) || 0;
 
   const avgProjectValue = projects?.length > 0
-    ? projects.reduce((sum: number, p: any) => sum + (p.project_value || 0), 0) / projects.length
+    ? projects.reduce((sum: number, p: Record<string, unknown>) => sum + ((p.project_value as number) || 0), 0) / projects.length
     : 0;
 
   return {
@@ -195,23 +198,25 @@ async function getRevenueStats(supabase: any, startDate: Date, filters: any) {
   };
 }
 
-async function getStageDistribution(supabase: any, startDate: Date, filters: any) {
-  const { data: projects } = await supabase
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getStageDistribution(supabaseClient: typeof supabase, startDate: Date, _filters: Record<string, unknown>) {
+  const { data: projects } = await supabaseClient
     .from('projects')
     .select('current_stage_varchar')
     .gte('created_at', startDate.toISOString());
 
   const distribution: Record<string, number> = {};
 
-  projects?.forEach((project: any) => {
-    const stage = project.current_stage_varchar || 'unknown';
+  projects?.forEach((project: Record<string, unknown>) => {
+    const stage = (project.current_stage_varchar as string) || 'unknown';
     distribution[stage] = (distribution[stage] || 0) + 1;
   });
 
   return distribution;
 }
 
-async function getTeamPerformance(supabase: any, startDate: Date, filters: any) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getTeamPerformance(_supabaseClient: typeof supabase, _startDate: Date, _filters: Record<string, unknown>) {
   // This would require user management tables - simplified for now
   return {
     totalMembers: 5,
@@ -221,8 +226,9 @@ async function getTeamPerformance(supabase: any, startDate: Date, filters: any) 
   };
 }
 
-async function getConversionFunnel(supabase: any, startDate: Date, filters: any) {
-  const { data: leads } = await supabase
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getConversionFunnel(supabaseClient: typeof supabase, startDate: Date, _filters: Record<string, unknown>) {
+  const { data: leads } = await supabaseClient
     .from('contact_submissions')
     .select('status')
     .gte('created_at', startDate.toISOString());
@@ -238,15 +244,16 @@ async function getConversionFunnel(supabase: any, startDate: Date, filters: any)
 
   const funnel = stages.map(stage => ({
     stage,
-    count: leads?.filter((l: any) => l.status === stage).length || 0
+    count: leads?.filter((l: Record<string, unknown>) => l.status === stage).length || 0
   }));
 
   return funnel;
 }
 
-async function getTimeSeriesData(supabase: any, startDate: Date, filters: any) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getTimeSeriesData(supabaseClient: typeof supabase, startDate: Date, _filters: Record<string, unknown>) {
   // Get daily project creation data
-  const { data: dailyProjects } = await supabase
+  const { data: dailyProjects } = await supabaseClient
     .from('projects')
     .select('created_at, project_value')
     .gte('created_at', startDate.toISOString())
@@ -255,13 +262,13 @@ async function getTimeSeriesData(supabase: any, startDate: Date, filters: any) {
   // Group by day
   const dailyData: Record<string, { projects: number; revenue: number }> = {};
 
-  dailyProjects?.forEach((project: any) => {
-    const date = new Date(project.created_at).toISOString().split('T')[0];
+  dailyProjects?.forEach((project: Record<string, unknown>) => {
+    const date = new Date(project.created_at as string).toISOString().split('T')[0];
     if (!dailyData[date]) {
       dailyData[date] = { projects: 0, revenue: 0 };
     }
     dailyData[date].projects += 1;
-    dailyData[date].revenue += project.project_value || 0;
+    dailyData[date].revenue += (project.project_value as number) || 0;
   });
 
   return Object.entries(dailyData).map(([date, data]) => ({
