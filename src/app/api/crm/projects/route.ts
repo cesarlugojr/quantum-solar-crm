@@ -16,6 +16,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { auth } from '@clerk/nextjs/server';
+import {
+  projectSchema,
+  projectUpdateSchema,
+  validateRequestBody,
+  validateSearchParams,
+  projectFiltersSchema
+} from '@/lib/validations';
+import {
+  successResponse,
+  paginatedResponse,
+  errorResponse,
+  handleApiError,
+  handleDatabaseError,
+  requireAuth,
+  logApiRequest
+} from '@/lib/api-response';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
@@ -23,15 +39,21 @@ const supabase = createClient(
 );
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Authentication
+    const authResult = await requireAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
     }
+    const { userId } = authResult;
 
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('id');
+
+    // Log request
+    logApiRequest('GET', '/api/crm/projects', userId, Date.now() - startTime);
 
     if (projectId) {
       // Get single project - simplified for when tables don't exist yet
@@ -42,15 +64,11 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (projectError) {
-        console.error('Error fetching project:', projectError);
-        // Return empty project if table doesn't exist
-        if (projectError.code === 'PGRST205') {
-          return NextResponse.json({
-            project: null,
-            stageHistory: []
-          });
-        }
-        return NextResponse.json({ error: 'Failed to fetch project' }, { status: 500 });
+        return handleDatabaseError(projectError);
+      }
+
+      if (!project) {
+        return errorResponse('Project not found', 404, 'PROJECT_NOT_FOUND');
       }
 
       // Try to get stage history, but don't fail if tables don't exist
@@ -66,87 +84,125 @@ export async function GET(request: NextRequest) {
         console.log('Stage history table not available yet');
       }
 
-      return NextResponse.json({
+      return successResponse({
         project,
         stageHistory
       });
     } else {
-      // Get all projects - simplified query
-      const { data: projects, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Validate query parameters
+      const filters = validateSearchParams(projectFiltersSchema, searchParams);
 
-      if (error) {
-        console.error('Error fetching projects:', error);
-        // Return empty array if table doesn't exist yet
-        if (error.code === 'PGRST205') {
-          return NextResponse.json([]);
-        }
-        return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
+      // Get all projects with enhanced data for dashboard
+      let query = supabase
+        .from('projects')
+        .select(`
+          id,
+          customer_name,
+          customer_email,
+          customer_phone,
+          address,
+          system_size_kw,
+          estimated_annual_production_kwh,
+          project_value,
+          current_stage,
+          current_stage_varchar,
+          overall_status,
+          assigned_project_manager,
+          assigned_installer,
+          created_at,
+          updated_at,
+          notice_to_proceed_date,
+          estimated_completion_date,
+          actual_completion_date
+        `, { count: 'exact' });
+
+      // Apply filters
+      if (filters.status !== 'all') {
+        query = query.eq('overall_status', filters.status);
       }
 
-      return NextResponse.json(projects || []);
+      if (filters.stage) {
+        query = query.eq('current_stage_varchar', filters.stage);
+      }
+
+      if (filters.assigned_to) {
+        query = query.eq('assigned_project_manager', filters.assigned_to);
+      }
+
+      if (filters.search) {
+        query = query.or(`customer_name.ilike.%${filters.search}%,custom_id.ilike.%${filters.search}%,address.ilike.%${filters.search}%`);
+      }
+
+      // Apply pagination
+      const offset = (filters.page - 1) * filters.limit;
+      query = query
+        .range(offset, offset + filters.limit - 1)
+        .order('created_at', { ascending: false });
+
+      const { data: projects, error, count } = await query;
+
+      if (error) {
+        return handleDatabaseError(error);
+      }
+
+      // Transform data to match ProjectDashboard interface
+      const transformedProjects = (projects || []).map(project => ({
+        id: project.id,
+        custom_id: `QS-P-${new Date(project.created_at).getFullYear()}-${project.id.slice(-6)}`,
+        customer_name: project.customer_name,
+        customer_email: project.customer_email,
+        current_stage: project.current_stage_varchar || 'lead',
+        system_size_kw: project.system_size_kw || 0,
+        estimated_cost: project.project_value || 0,
+        assigned_to: project.assigned_project_manager || 'Unassigned',
+        created_at: project.created_at,
+        updated_at: project.updated_at
+      }));
+
+      return paginatedResponse(transformedProjects, {
+        page: filters.page,
+        limit: filters.limit,
+        total: count || 0
+      });
     }
   } catch (error) {
-    console.error('Error in CRM projects API:', error);
-    // Return empty array for database connection issues
-    return NextResponse.json([]);
+    return handleApiError(error);
   }
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Authentication
+    const authResult = await requireAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+    const { userId } = authResult;
+
+    // Validate request body
+    const body = await request.json();
+    const validation = validateRequestBody(projectSchema)(body);
+
+    if (!validation.success) {
+      return errorResponse(`Validation failed: ${validation.error}`, 400, 'VALIDATION_ERROR');
     }
 
-    const projectData = await request.json();
-
-    const {
-      customer_name,
-      customer_email,
-      customer_phone,
-      address,
-      system_size_kw,
-      estimated_annual_production_kwh,
-      project_value,
-      assigned_project_manager,
-      assigned_installer,
-      notes
-    } = projectData;
-
-    if (!customer_name || !address) {
-      return NextResponse.json(
-        { error: 'Customer name and address are required' },
-        { status: 400 }
-      );
-    }
+    const projectData = validation.data;
 
     // Create project
     const { data: project, error: projectError } = await supabase
       .from('projects')
       .insert({
-        customer_name,
-        customer_email,
-        customer_phone,
-        address,
-        system_size_kw,
-        estimated_annual_production_kwh,
-        project_value,
-        assigned_project_manager,
-        assigned_installer,
-        notes,
+        ...projectData,
         notice_to_proceed_date: new Date().toISOString().split('T')[0]
       })
       .select()
       .single();
 
     if (projectError) {
-      console.error('Error creating project:', projectError);
-      return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
+      return handleDatabaseError(projectError);
     }
 
     // Initialize stage history with stage 1
@@ -163,14 +219,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Send initial SMS notification
-    if (customer_phone) {
+    if (projectData.customer_phone) {
       try {
         await fetch(`${request.nextUrl.origin}/api/integrations/twilio`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            to: customer_phone,
-            message: `Welcome to Quantum Solar, ${customer_name}! Your solar project has officially started. We'll keep you updated throughout the process. - Quantum Solar`,
+            to: projectData.customer_phone,
+            message: `Welcome to Quantum Solar, ${projectData.customer_name}! Your solar project has officially started. We'll keep you updated throughout the process. - Quantum Solar`,
             type: 'project_started'
           })
         });
@@ -179,41 +235,39 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(project);
+    logApiRequest('POST', '/api/crm/projects', userId, Date.now() - startTime);
+    return successResponse(project, 'Project created successfully', 201);
   } catch (error) {
-    console.error('Error in CRM projects POST API:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
 export async function PUT(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Authentication
+    const authResult = await requireAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+    const { userId } = authResult;
+
+    // Validate request body
+    const body = await request.json();
+    const validation = validateRequestBody(projectUpdateSchema)(body);
+
+    if (!validation.success) {
+      return errorResponse(`Validation failed: ${validation.error}`, 400, 'VALIDATION_ERROR');
     }
 
-    const { id, action, ...updateData } = await request.json();
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Project ID is required' },
-        { status: 400 }
-      );
-    }
+    const { id, action, ...updateData } = validation.data;
 
     if (action === 'advance_stage') {
       const { new_stage, notes } = updateData;
       
-      if (!new_stage || new_stage < 1 || new_stage > 12) {
-        return NextResponse.json(
-          { error: 'Invalid stage number' },
-          { status: 400 }
-        );
+      if (!new_stage) {
+        return errorResponse('New stage is required for stage advancement', 400, 'MISSING_STAGE');
       }
 
       // Use the database function to advance the stage
@@ -226,8 +280,7 @@ export async function PUT(request: NextRequest) {
         });
 
       if (error) {
-        console.error('Error advancing project stage:', error);
-        return NextResponse.json({ error: 'Failed to advance project stage' }, { status: 500 });
+        return handleDatabaseError(error);
       }
 
       // Send SMS notification for stage advancement
@@ -270,7 +323,8 @@ export async function PUT(request: NextRequest) {
         }
       }
 
-      return NextResponse.json({ success: true, stage: new_stage });
+      logApiRequest('PUT', '/api/crm/projects', userId, Date.now() - startTime);
+      return successResponse({ stage: new_stage }, 'Project stage advanced successfully');
     } else {
       // Regular project update
       const { error } = await supabase
@@ -282,45 +336,40 @@ export async function PUT(request: NextRequest) {
         .eq('id', id);
 
       if (error) {
-        console.error('Error updating project:', error);
-        return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
+        return handleDatabaseError(error);
       }
 
-      return NextResponse.json({ success: true });
+      logApiRequest('PUT', '/api/crm/projects', userId, Date.now() - startTime);
+      return successResponse({}, 'Project updated successfully');
     }
   } catch (error) {
-    console.error('Error in CRM projects PUT API:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
 // Run project automation - can be called by cron job or manually
-export async function PATCH() {
+export async function PATCH(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Authentication
+    const authResult = await requireAuth(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
     }
+    const { userId } = authResult;
 
     // Run the automation function
     const { error } = await supabase
       .rpc('process_project_automation');
 
     if (error) {
-      console.error('Error running project automation:', error);
-      return NextResponse.json({ error: 'Failed to run automation' }, { status: 500 });
+      return handleDatabaseError(error);
     }
 
-    return NextResponse.json({ success: true, message: 'Project automation completed' });
+    logApiRequest('PATCH', '/api/crm/projects', userId, Date.now() - startTime);
+    return successResponse({}, 'Project automation completed successfully');
   } catch (error) {
-    console.error('Error in project automation:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

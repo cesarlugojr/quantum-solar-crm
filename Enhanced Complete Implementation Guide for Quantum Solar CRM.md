@@ -264,739 +264,489 @@ ORDER BY
     END;
 ```
 
-## 🚀 Part 2: Enhanced Lead Capture & Form System
+## 🚀 Part 2: Enhanced CRM Backend & API Architecture
 
-### 2.1 Advanced Multi-Step Form Architecture
+*Note: Lead capture forms are already implemented and live at [quantumsolar.us/state-promotions/illinois/ameren-il](https://quantumsolar.us/state-promotions/illinois/ameren-il). This section focuses on backend CRM functionality.*
 
-Building upon the existing SplashForm with enhanced validation and analytics:
+### 2.1 Advanced CRM API Routes
+
+Enhanced API endpoints for comprehensive lead and project management:
 
 ```typescript
-// components/forms/EnhancedSplashForm.tsx
-'use client';
-
-import { useState, useEffect, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+// app/api/crm/leads/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase';
+import { auth } from '@clerk/nextjs';
 import { z } from 'zod';
-import { trackEvent } from '@/lib/analytics';
-import { saveFormProgress, loadFormProgress } from '@/lib/session-storage';
 
-// Enhanced validation schema with TCPA compliance
-const FormStepSchema = z.object({
-  // Step 1: Homeowner qualification
-  homeownerStatus: z.enum(['yes', 'no'], {
-    required_error: 'Please select your homeowner status'
-  }),
-
-  // Step 2-3: Personal information
-  firstName: z.string()
-    .min(2, 'First name must be at least 2 characters')
-    .max(50, 'First name must be less than 50 characters')
-    .regex(/^[a-zA-Z\s'-]+$/, 'Please enter a valid first name'),
-
-  lastName: z.string()
-    .min(2, 'Last name must be at least 2 characters')
-    .max(50, 'Last name must be less than 50 characters')
-    .regex(/^[a-zA-Z\s'-]+$/, 'Please enter a valid last name'),
-
-  // Step 4: TCPA Consent (CRITICAL)
-  email: z.string()
-    .email('Please enter a valid email address')
-    .toLowerCase(),
-
-  phone: z.string()
-    .regex(/^\+?[\d\s-()]{10,}$/, 'Please enter a valid phone number')
-    .transform(val => val.replace(/\D/g, '')),
-
-  tcpaConsent: z.boolean()
-    .refine(val => val === true, {
-      message: 'TCPA consent is required to continue'
-    }),
-
-  smsConsent: z.boolean()
-    .refine(val => val === true, {
-      message: 'SMS consent is required for communication'
-    }),
-
-  // Step 5-6: Property information
-  address: z.string().min(5, 'Please enter a complete address'),
-  city: z.string().min(2, 'Please enter your city'),
-  state: z.string().length(2, 'Please select your state'),
-  zipCode: z.string()
-    .regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code'),
-
-  // Step 7-8: Utility information
-  utilityCompany: z.string().min(1, 'Please select your utility company'),
-  averageMonthlyBill: z.string().min(1, 'Please enter your average monthly bill'),
-
-  // Step 9-10: Solar qualification
-  roofCondition: z.enum(['excellent', 'good', 'fair', 'poor']),
-  roofShading: z.enum(['none', 'minimal', 'moderate', 'heavy']),
-  homeAge: z.string().min(1, 'Please enter your home age'),
-
-  // Step 11-12: Financial qualification
-  creditScoreRange: z.enum(['750+', '700-749', '650-699', '600-649', 'below-600']),
-  monthlyIncomeRange: z.enum(['below-3000', '3000-5000', '5000-7500', '7500-10000', '10000+']),
-
-  // Step 13: Final details
-  bestTimeToCall: z.enum(['morning', 'afternoon', 'evening', 'anytime']),
-  additionalNotes: z.string().optional()
+// Enhanced lead validation schema
+const LeadUpdateSchema = z.object({
+  id: z.string().uuid(),
+  status: z.enum([
+    'new', 'contacted', 'qualified', 'proposal_sent', 'contract_signed',
+    'permits_submitted', 'permits_approved', 'installation_scheduled',
+    'installation_complete', 'inspection_passed', 'pto_granted', 'disqualified'
+  ]),
+  assigned_to: z.string().optional(),
+  notes: z.string().optional(),
+  follow_up_date: z.string().datetime().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  tags: z.array(z.string()).optional(),
+  estimated_value: z.number().positive().optional(),
+  solar_system_size: z.number().positive().optional(),
+  installation_address: z.string().optional(),
 });
 
-type FormData = z.infer<typeof FormStepSchema>;
+export async function GET(request: NextRequest) {
+  try {
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-interface EnhancedSplashFormProps {
-  campaignId?: string;
-  sourceUrl?: string;
-  onComplete?: (data: FormData) => void;
+    const supabase = createClient();
+    const { searchParams } = new URL(request.url);
+
+    // Enhanced query parameters
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const status = searchParams.get('status');
+    const assignedTo = searchParams.get('assigned_to');
+    const search = searchParams.get('search');
+    const sortBy = searchParams.get('sort_by') || 'created_at';
+    const sortOrder = searchParams.get('sort_order') || 'desc';
+    const dateFrom = searchParams.get('date_from');
+    const dateTo = searchParams.get('date_to');
+
+    let query = supabase
+      .from('contact_submissions')
+      .select(`
+        *,
+        projects:projects(*),
+        assigned_user:assigned_to(id, email, name)
+      `)
+      .range((page - 1) * limit, page * limit - 1);
+
+    // Apply filters
+    if (status) {
+      query = query.eq('status', status);
+    }
+    if (assignedTo) {
+      query = query.eq('assigned_to', assignedTo);
+    }
+    if (search) {
+      query = query.or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
+    }
+    if (dateFrom) {
+      query = query.gte('created_at', dateFrom);
+    }
+    if (dateTo) {
+      query = query.lte('created_at', dateTo);
+    }
+
+    // Apply sorting
+    query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+
+    const { data: leads, error, count } = await query;
+
+    if (error) {
+      console.error('Database error:', error);
+      return NextResponse.json({ error: 'Failed to fetch leads' }, { status: 500 });
+    }
+
+    // Get summary statistics
+    const { data: stats } = await supabase
+      .rpc('get_lead_stats', { user_filter: userId });
+
+    return NextResponse.json({
+      leads,
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit)
+      },
+      stats
+    });
+
+  } catch (error) {
+    console.error('API Error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 
-export const EnhancedSplashForm: React.FC<EnhancedSplashFormProps> = ({
-  campaignId = 'ameren-il-default',
-  sourceUrl,
-  onComplete
-}) => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [sessionId, setSessionId] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const form = useForm<FormData>({
-    resolver: zodResolver(FormStepSchema),
-    mode: 'onChange',
-    defaultValues: {
-      homeownerStatus: undefined,
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      tcpaConsent: false,
-      smsConsent: false,
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      utilityCompany: '',
-      averageMonthlyBill: '',
-      roofCondition: undefined,
-      roofShading: undefined,
-      homeAge: '',
-      creditScoreRange: undefined,
-      monthlyIncomeRange: undefined,
-      bestTimeToCall: undefined,
-      additionalNotes: ''
-    }
-  });
-
-  // Initialize session and load saved progress
-  useEffect(() => {
-    const newSessionId = `QSLID-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    setSessionId(newSessionId);
-
-    // Load any existing form data
-    const savedData = loadFormProgress(newSessionId);
-    if (savedData) {
-      Object.keys(savedData).forEach(key => {
-        form.setValue(key as keyof FormData, savedData[key]);
-      });
+export async function PUT(request: NextRequest) {
+  try {
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Track form start
-    trackEvent('form_started', {
-      campaign_id: campaignId,
-      session_id: newSessionId,
-      source_url: sourceUrl
-    });
-  }, []);
+    const body = await request.json();
+    const validatedData = LeadUpdateSchema.parse(body);
 
-  // Save progress after each step
-  const saveProgress = useCallback((data: Partial<FormData>) => {
-    saveFormProgress(sessionId, {
-      ...data,
-      campaign_id: campaignId,
-      step_completed: currentStep,
-      timestamp: new Date().toISOString()
-    });
-  }, [sessionId, campaignId, currentStep]);
+    const supabase = createClient();
 
-  const handleStepComplete = async (stepData: Partial<FormData>) => {
-    try {
-      // Save progress
-      saveProgress(stepData);
+    // Log the update activity
+    const { data: lead, error } = await supabase
+      .from('contact_submissions')
+      .update({
+        ...validatedData,
+        updated_at: new Date().toISOString(),
+        updated_by: userId
+      })
+      .eq('id', validatedData.id)
+      .select()
+      .single();
 
-      // Track step completion
-      trackEvent('form_step_completed', {
-        step: currentStep,
-        session_id: sessionId,
-        campaign_id: campaignId
-      });
-
-      // Special handling for TCPA consent step
-      if (currentStep === 4) {
-        trackEvent('tcpa_consent_given', {
-          session_id: sessionId,
-          tcpa_consent: stepData.tcpaConsent,
-          sms_consent: stepData.smsConsent,
-          timestamp: new Date().toISOString(),
-          ip_address: await getClientIP(), // Implement this function
-          user_agent: navigator.userAgent
-        });
-      }
-
-      // Move to next step or submit
-      if (currentStep < 13) {
-        setCurrentStep(prev => prev + 1);
-      } else {
-        await handleFinalSubmission();
-      }
-
-    } catch (error) {
-      console.error('Step completion error:', error);
-      // Handle error appropriately
+    if (error) {
+      console.error('Update error:', error);
+      return NextResponse.json({ error: 'Failed to update lead' }, { status: 500 });
     }
-  };
 
-  const handleFinalSubmission = async () => {
-    setIsSubmitting(true);
-
-    try {
-      const formData = form.getValues();
-
-      // Final validation
-      const validatedData = FormStepSchema.parse(formData);
-
-      // Submit to API
-      const response = await fetch('/api/contact/splash', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...validatedData,
-          session_id: sessionId,
-          source_campaign: campaignId,
-          source_url: sourceUrl,
-          form_completion_time: new Date().toISOString()
-        })
+    // Create activity log entry
+    await supabase
+      .from('activity_log')
+      .insert({
+        user_id: userId,
+        entity_type: 'lead',
+        entity_id: validatedData.id,
+        action: 'update',
+        details: {
+          changes: validatedData,
+          timestamp: new Date().toISOString()
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Submission failed');
-      }
+    return NextResponse.json({ lead });
 
-      const result = await response.json();
-
-      // Track successful submission
-      trackEvent('lead_submitted', {
-        session_id: sessionId,
-        lead_id: result.leadId,
-        campaign_id: campaignId
-      });
-
-      // Call completion handler
-      onComplete?.(validatedData);
-
-      // Redirect to thank you page
-      window.location.href = `/state-promotions/illinois/ameren-il/thank-you?id=${sessionId}`;
-
-    } catch (error) {
-      console.error('Form submission error:', error);
-
-      // Track submission error
-      trackEvent('form_submission_error', {
-        session_id: sessionId,
-        error: error.message,
-        step: currentStep
-      });
-
-      // Show error to user
-      alert('There was an error submitting your information. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid data', details: error.errors }, { status: 400 });
     }
-  };
-
-  // Render current step component
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1:
-        return <HomeownerQualificationStep
-          form={form}
-          onNext={handleStepComplete}
-        />;
-      case 2:
-        return <PersonalInfoStep
-          form={form}
-          onNext={handleStepComplete}
-          field="firstName"
-        />;
-      case 3:
-        return <PersonalInfoStep
-          form={form}
-          onNext={handleStepComplete}
-          field="lastName"
-        />;
-      case 4:
-        return <TCPAConsentStep
-          form={form}
-          onNext={handleStepComplete}
-        />;
-      // ... additional steps
-      default:
-        return <div>Invalid step</div>;
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Progress indicator */}
-        <div className="mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">
-                Step {currentStep} of 13
-              </span>
-              <span className="text-sm text-gray-600">
-                {Math.round((currentStep / 13) * 100)}% Complete
-              </span>
-            </div>
-            <div className="mt-2 bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(currentStep / 13) * 100}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Current step content */}
-        {renderCurrentStep()}
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-xs text-gray-500">
-          <p>
-            By continuing, you agree to our{' '}
-            <a href="/privacy" className="text-blue-600 hover:underline">
-              Privacy Policy
-            </a>{' '}
-            and{' '}
-            <a href="/terms" className="text-blue-600 hover:underline">
-              Terms of Service
-            </a>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
+    console.error('API Error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
 ```
 
-### 2.2 Advanced Analytics Integration
+### 2.2 Real-time CRM Dashboard Integration
 
-Implement comprehensive tracking and conversion optimization for lead capture forms:
+Supabase real-time subscriptions for live CRM updates:
 
 ```typescript
-// lib/analytics.ts
+// lib/realtime-crm.ts
 'use client';
 
-import { GoogleAnalytics } from '@next/third-parties/google';
+import { createClient } from '@/lib/supabase';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
-// Enhanced event tracking for lead funnel optimization
-export interface AnalyticsEvent {
-  event_name: string;
-  parameters: {
-    campaign_id?: string;
-    session_id?: string;
-    step?: number;
-    form_type?: string;
-    lead_id?: string;
-    conversion_value?: number;
-    [key: string]: any;
-  };
+export interface CRMRealtimeData {
+  leads: any[];
+  projects: any[];
+  activities: any[];
 }
 
-export class EnhancedAnalytics {
-  private static instance: EnhancedAnalytics;
-  private isInitialized = false;
+export class CRMRealtimeManager {
+  private supabase = createClient();
+  private channels: RealtimeChannel[] = [];
+  private listeners: Map<string, Function[]> = new Map();
 
-  static getInstance(): EnhancedAnalytics {
-    if (!EnhancedAnalytics.instance) {
-      EnhancedAnalytics.instance = new EnhancedAnalytics();
-    }
-    return EnhancedAnalytics.instance;
+  // Subscribe to real-time lead updates
+  subscribeToLeads(callback: (payload: any) => void) {
+    const channel = this.supabase
+      .channel('leads-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'contact_submissions'
+        },
+        (payload) => {
+          callback(payload);
+        }
+      )
+      .subscribe();
+
+    this.channels.push(channel);
+    this.addListener('leads', callback);
+    return channel;
   }
 
-  initialize() {
-    if (this.isInitialized) return;
+  // Subscribe to project status updates
+  subscribeToProjects(callback: (payload: any) => void) {
+    const channel = this.supabase
+      .channel('projects-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'projects'
+        },
+        (payload) => {
+          callback(payload);
+        }
+      )
+      .subscribe();
 
-    // Initialize Google Analytics 4
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID) {
-      window.gtag = window.gtag || function() {
-        (window.dataLayer = window.dataLayer || []).push(arguments);
-      };
-      window.gtag('js', new Date());
-      window.gtag('config', process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID, {
-        page_title: document.title,
-        page_location: window.location.href,
-        enhanced_measurement: true,
-        allow_google_signals: true,
-        allow_ad_personalization_signals: true
-      });
-    }
-
-    // Initialize Facebook Pixel
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID) {
-      window.fbq = window.fbq || function() {
-        (window.fbq.q = window.fbq.q || []).push(arguments);
-      };
-      window.fbq('init', process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID);
-      window.fbq('track', 'PageView');
-    }
-
-    this.isInitialized = true;
+    this.channels.push(channel);
+    this.addListener('projects', callback);
+    return channel;
   }
 
-  // Track form events with enhanced parameters
-  trackFormEvent(eventName: string, parameters: AnalyticsEvent['parameters']) {
-    const enhancedParams = {
-      ...parameters,
-      timestamp: new Date().toISOString(),
-      user_agent: navigator.userAgent,
-      screen_resolution: `${screen.width}x${screen.height}`,
-      viewport_size: `${window.innerWidth}x${window.innerHeight}`,
-      referrer: document.referrer,
-      page_url: window.location.href
+  // Subscribe to activity log for audit trail
+  subscribeToActivities(userId: string, callback: (payload: any) => void) {
+    const channel = this.supabase
+      .channel('activity-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'activity_log',
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          callback(payload);
+        }
+      )
+      .subscribe();
+
+    this.channels.push(channel);
+    this.addListener('activities', callback);
+    return channel;
+  }
+
+  // Utility to broadcast CRM notifications
+  async broadcastNotification(type: string, data: any, userId?: string) {
+    const channel = this.supabase.channel('crm-notifications');
+
+    await channel.send({
+      type: 'broadcast',
+      event: 'notification',
+      payload: {
+        type,
+        data,
+        userId,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  // Clean up all subscriptions
+  disconnect() {
+    this.channels.forEach(channel => {
+      this.supabase.removeChannel(channel);
+    });
+    this.channels = [];
+    this.listeners.clear();
+  }
+
+  private addListener(type: string, callback: Function) {
+    if (!this.listeners.has(type)) {
+      this.listeners.set(type, []);
+    }
+    this.listeners.get(type)?.push(callback);
+  }
+
+  // Get current subscription count for debugging
+  getSubscriptionCount() {
+    return {
+      channels: this.channels.length,
+      listeners: Array.from(this.listeners.entries()).map(([type, callbacks]) => ({
+        type,
+        count: callbacks.length
+      }))
     };
-
-    // Google Analytics 4
-    if (typeof window !== 'undefined' && window.gtag) {
-      window.gtag('event', eventName, {
-        event_category: 'Lead Generation',
-        event_label: parameters.campaign_id || 'unknown',
-        value: parameters.conversion_value || 0,
-        custom_parameters: enhancedParams
-      });
-    }
-
-    // Facebook Pixel
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', this.mapToFacebookEvent(eventName), {
-        content_category: 'Solar Lead',
-        content_name: parameters.campaign_id || 'unknown',
-        value: parameters.conversion_value || 0,
-        currency: 'USD',
-        custom_data: enhancedParams
-      });
-    }
-
-    // Google Tag Manager
-    if (typeof window !== 'undefined' && window.dataLayer) {
-      window.dataLayer.push({
-        event: eventName,
-        event_category: 'Lead Generation',
-        event_action: eventName,
-        event_label: parameters.campaign_id,
-        ...enhancedParams
-      });
-    }
-
-    // Store event for internal analytics
-    this.storeInternalEvent(eventName, enhancedParams);
-  }
-
-  // Map custom events to Facebook standard events
-  private mapToFacebookEvent(eventName: string): string {
-    const eventMap: Record<string, string> = {
-      'form_started': 'InitiateCheckout',
-      'tcpa_consent_given': 'CompleteRegistration',
-      'lead_submitted': 'Lead',
-      'form_abandoned': 'AddToCart',
-      'step_completed': 'ViewContent'
-    };
-
-    return eventMap[eventName] || 'CustomEvent';
-  }
-
-  // Store events for internal funnel analysis
-  private storeInternalEvent(eventName: string, parameters: any) {
-    try {
-      const events = JSON.parse(sessionStorage.getItem('analytics_events') || '[]');
-      events.push({
-        event: eventName,
-        parameters,
-        timestamp: Date.now()
-      });
-
-      // Keep only last 50 events to avoid storage bloat
-      if (events.length > 50) {
-        events.splice(0, events.length - 50);
-      }
-
-      sessionStorage.setItem('analytics_events', JSON.stringify(events));
-    } catch (error) {
-      console.warn('Failed to store internal analytics event:', error);
-    }
-  }
-
-  // Track conversion funnel metrics
-  trackConversionFunnel(step: number, stepName: string, sessionId: string, campaignId: string) {
-    this.trackFormEvent('funnel_step_completed', {
-      step,
-      step_name: stepName,
-      session_id: sessionId,
-      campaign_id: campaignId,
-      funnel_progress: (step / 13) * 100 // Assuming 13-step form
-    });
-  }
-
-  // Track form abandonment for optimization
-  trackFormAbandonment(step: number, sessionId: string, campaignId: string, timeOnStep: number) {
-    this.trackFormEvent('form_abandoned', {
-      abandonment_step: step,
-      session_id: sessionId,
-      campaign_id: campaignId,
-      time_on_step_seconds: timeOnStep,
-      completion_percentage: (step / 13) * 100
-    });
-  }
-
-  // Track successful lead submission
-  trackLeadSubmission(leadId: string, sessionId: string, campaignId: string, estimatedValue: number) {
-    this.trackFormEvent('lead_submitted', {
-      lead_id: leadId,
-      session_id: sessionId,
-      campaign_id: campaignId,
-      conversion_value: estimatedValue,
-      is_conversion: true
-    });
-
-    // Track as conversion in Facebook
-    if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', 'Lead', {
-        value: estimatedValue,
-        currency: 'USD',
-        content_name: campaignId
-      });
-    }
-  }
-
-  // Get analytics summary for dashboard
-  getAnalyticsSummary(): any {
-    try {
-      const events = JSON.parse(sessionStorage.getItem('analytics_events') || '[]');
-      const last24Hours = Date.now() - (24 * 60 * 60 * 1000);
-      const recentEvents = events.filter((e: any) => e.timestamp > last24Hours);
-
-      return {
-        total_events: recentEvents.length,
-        form_starts: recentEvents.filter((e: any) => e.event === 'form_started').length,
-        lead_submissions: recentEvents.filter((e: any) => e.event === 'lead_submitted').length,
-        abandonment_rate: this.calculateAbandonmentRate(recentEvents),
-        average_completion_time: this.calculateAverageCompletionTime(recentEvents)
-      };
-    } catch {
-      return null;
-    }
-  }
-
-  private calculateAbandonmentRate(events: any[]): number {
-    const starts = events.filter(e => e.event === 'form_started').length;
-    const completions = events.filter(e => e.event === 'lead_submitted').length;
-    return starts > 0 ? ((starts - completions) / starts) * 100 : 0;
-  }
-
-  private calculateAverageCompletionTime(events: any[]): number {
-    const completedSessions = new Map();
-
-    events.forEach(event => {
-      const sessionId = event.parameters.session_id;
-      if (!sessionId) return;
-
-      if (!completedSessions.has(sessionId)) {
-        completedSessions.set(sessionId, { start: null, end: null });
-      }
-
-      if (event.event === 'form_started') {
-        completedSessions.get(sessionId).start = event.timestamp;
-      } else if (event.event === 'lead_submitted') {
-        completedSessions.get(sessionId).end = event.timestamp;
-      }
-    });
-
-    const completionTimes = Array.from(completedSessions.values())
-      .filter(session => session.start && session.end)
-      .map(session => session.end - session.start);
-
-    return completionTimes.length > 0
-      ? completionTimes.reduce((sum, time) => sum + time, 0) / completionTimes.length / 1000 // Convert to seconds
-      : 0;
   }
 }
 
 // Export singleton instance
-export const analytics = EnhancedAnalytics.getInstance();
-
-// Convenience functions for common tracking
-export const trackEvent = (eventName: string, parameters: AnalyticsEvent['parameters']) => {
-  analytics.trackFormEvent(eventName, parameters);
-};
-
-export const trackConversion = (leadId: string, sessionId: string, campaignId: string, value: number) => {
-  analytics.trackLeadSubmission(leadId, sessionId, campaignId, value);
-};
-
-export const trackStepCompletion = (step: number, stepName: string, sessionId: string, campaignId: string) => {
-  analytics.trackConversionFunnel(step, stepName, sessionId, campaignId);
-};
+export const crmRealtime = new CRMRealtimeManager();
 ```
 
-### 2.3 Session Storage and Form Persistence
+### 2.3 Enhanced Database Functions & Triggers
 
-Implement robust form data persistence to prevent lead loss:
+PostgreSQL functions for complex CRM operations:
 
-```typescript
-// lib/session-storage.ts
-'use client';
+```sql
+-- supabase/migrations/20240923000000_enhanced_crm_functions.sql
 
-export interface FormProgress {
-  sessionId: string;
-  step: number;
-  data: Record<string, any>;
-  timestamp: string;
-  campaignId: string;
-  sourceUrl?: string;
-}
+-- Function to get lead conversion stats
+CREATE OR REPLACE FUNCTION get_lead_stats(user_filter TEXT DEFAULT NULL)
+RETURNS JSON AS $$
+DECLARE
+  result JSON;
+BEGIN
+  SELECT json_build_object(
+    'total_leads', COUNT(*),
+    'new_leads', COUNT(*) FILTER (WHERE status = 'new'),
+    'qualified_leads', COUNT(*) FILTER (WHERE status = 'qualified'),
+    'converted_leads', COUNT(*) FILTER (WHERE status IN ('contract_signed', 'installation_complete', 'pto_granted')),
+    'conversion_rate',
+      CASE
+        WHEN COUNT(*) > 0 THEN
+          ROUND((COUNT(*) FILTER (WHERE status IN ('contract_signed', 'installation_complete', 'pto_granted'))::NUMERIC / COUNT(*) * 100), 2)
+        ELSE 0
+      END,
+    'avg_lead_value', COALESCE(AVG(estimated_system_value), 0),
+    'total_pipeline_value', COALESCE(SUM(estimated_system_value), 0),
+    'leads_by_status', (
+      SELECT json_object_agg(status, count)
+      FROM (
+        SELECT status, COUNT(*) as count
+        FROM contact_submissions
+        WHERE (user_filter IS NULL OR assigned_to = user_filter)
+          AND created_at >= CURRENT_DATE - INTERVAL '90 days'
+        GROUP BY status
+      ) status_counts
+    )
+  ) INTO result
+  FROM contact_submissions
+  WHERE (user_filter IS NULL OR assigned_to = user_filter)
+    AND created_at >= CURRENT_DATE - INTERVAL '90 days';
 
-export class SessionStorageManager {
-  private static readonly STORAGE_KEY = 'quantum_solar_form_progress';
-  private static readonly EXPIRY_HOURS = 24;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-  static saveFormProgress(sessionId: string, data: Partial<FormProgress>): void {
-    try {
-      const existingData = this.loadFormProgress(sessionId) || {};
+-- Function to auto-assign leads based on workload
+CREATE OR REPLACE FUNCTION auto_assign_lead(lead_id UUID)
+RETURNS UUID AS $$
+DECLARE
+  assigned_user UUID;
+  min_leads INTEGER := 999999;
+  user_rec RECORD;
+BEGIN
+  -- Find user with least assigned leads in last 30 days
+  FOR user_rec IN
+    SELECT u.id, COUNT(cs.id) as lead_count
+    FROM auth.users u
+    LEFT JOIN contact_submissions cs ON cs.assigned_to = u.id
+      AND cs.created_at >= CURRENT_DATE - INTERVAL '30 days'
+    WHERE u.raw_user_meta_data->>'role' = 'sales'
+      AND u.banned_until IS NULL
+    GROUP BY u.id
+    ORDER BY lead_count ASC
+    LIMIT 1
+  LOOP
+    assigned_user := user_rec.id;
+    EXIT;
+  END LOOP;
 
-      const updatedProgress: FormProgress = {
-        sessionId,
-        step: data.step || existingData.step || 1,
-        data: { ...existingData.data, ...data.data },
-        timestamp: new Date().toISOString(),
-        campaignId: data.campaignId || existingData.campaignId || 'unknown',
-        sourceUrl: data.sourceUrl || existingData.sourceUrl
-      };
+  -- Update the lead with assignment
+  UPDATE contact_submissions
+  SET assigned_to = assigned_user,
+      status = CASE WHEN status = 'new' THEN 'contacted' ELSE status END,
+      updated_at = NOW()
+  WHERE id = lead_id;
 
-      // Store in sessionStorage for current session
-      sessionStorage.setItem(
-        `${this.STORAGE_KEY}_${sessionId}`,
-        JSON.stringify(updatedProgress)
-      );
+  -- Log the assignment
+  INSERT INTO activity_log (user_id, entity_type, entity_id, action, details)
+  VALUES (assigned_user, 'lead', lead_id, 'auto_assigned',
+    json_build_object('assigned_at', NOW(), 'method', 'auto_assignment'));
 
-      // Also store in localStorage for cross-session recovery
-      const allProgress = this.getAllFormProgress();
-      allProgress[sessionId] = updatedProgress;
-      this.cleanExpiredProgress(allProgress);
+  RETURN assigned_user;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(allProgress));
+-- Function to calculate lead scoring
+CREATE OR REPLACE FUNCTION calculate_lead_score(lead_id UUID)
+RETURNS INTEGER AS $$
+DECLARE
+  lead_rec RECORD;
+  score INTEGER := 0;
+BEGIN
+  SELECT * INTO lead_rec FROM contact_submissions WHERE id = lead_id;
 
-    } catch (error) {
-      console.warn('Failed to save form progress:', error);
-    }
-  }
+  IF NOT FOUND THEN
+    RETURN 0;
+  END IF;
 
-  static loadFormProgress(sessionId: string): FormProgress | null {
-    try {
-      // Try sessionStorage first (current session)
-      const sessionData = sessionStorage.getItem(`${this.STORAGE_KEY}_${sessionId}`);
-      if (sessionData) {
-        return JSON.parse(sessionData);
-      }
+  -- Base score
+  score := 50;
 
-      // Fall back to localStorage (previous sessions)
-      const allProgress = this.getAllFormProgress();
-      return allProgress[sessionId] || null;
+  -- Income scoring
+  CASE lead_rec.monthly_income_range
+    WHEN '10000+' THEN score := score + 30;
+    WHEN '7500-10000' THEN score := score + 25;
+    WHEN '5000-7500' THEN score := score + 20;
+    WHEN '3000-5000' THEN score := score + 10;
+    ELSE score := score - 10;
+  END CASE;
 
-    } catch (error) {
-      console.warn('Failed to load form progress:', error);
-      return null;
-    }
-  }
+  -- Credit score scoring
+  CASE lead_rec.credit_score_range
+    WHEN '750+' THEN score := score + 25;
+    WHEN '700-749' THEN score := score + 20;
+    WHEN '650-699' THEN score := score + 15;
+    WHEN '600-649' THEN score := score + 5;
+    ELSE score := score - 15;
+  END CASE;
 
-  static getAllFormProgress(): Record<string, FormProgress> {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
-    }
-  }
+  -- Utility bill scoring (higher bills = better prospects)
+  IF lead_rec.average_monthly_bill::INTEGER >= 200 THEN
+    score := score + 20;
+  ELSIF lead_rec.average_monthly_bill::INTEGER >= 150 THEN
+    score := score + 15;
+  ELSIF lead_rec.average_monthly_bill::INTEGER >= 100 THEN
+    score := score + 10;
+  ELSE
+    score := score - 5;
+  END IF;
 
-  static cleanExpiredProgress(progress: Record<string, FormProgress>): void {
-    const cutoffTime = new Date();
-    cutoffTime.setHours(cutoffTime.getHours() - this.EXPIRY_HOURS);
+  -- Home condition scoring
+  CASE lead_rec.roof_condition
+    WHEN 'excellent' THEN score := score + 15;
+    WHEN 'good' THEN score := score + 10;
+    WHEN 'fair' THEN score := score + 5;
+    ELSE score := score - 10;
+  END CASE;
 
-    Object.keys(progress).forEach(sessionId => {
-      const formProgress = progress[sessionId];
-      if (new Date(formProgress.timestamp) < cutoffTime) {
-        delete progress[sessionId];
-      }
-    });
-  }
+  -- TCPA consent bonus
+  IF lead_rec.consent_tcpa = true THEN
+    score := score + 10;
+  END IF;
 
-  static clearFormProgress(sessionId: string): void {
-    try {
-      sessionStorage.removeItem(`${this.STORAGE_KEY}_${sessionId}`);
+  -- Ensure score is within bounds
+  score := GREATEST(0, LEAST(100, score));
 
-      const allProgress = this.getAllFormProgress();
-      delete allProgress[sessionId];
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(allProgress));
-    } catch (error) {
-      console.warn('Failed to clear form progress:', error);
-    }
-  }
+  -- Update the lead with calculated score
+  UPDATE contact_submissions
+  SET lead_score = score
+  WHERE id = lead_id;
 
-  static getAbandonedForms(): FormProgress[] {
-    const allProgress = this.getAllFormProgress();
-    const cutoffTime = new Date();
-    cutoffTime.setMinutes(cutoffTime.getMinutes() - 30); // Forms abandoned > 30 minutes
+  RETURN score;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-    return Object.values(allProgress).filter(progress => {
-      const timestamp = new Date(progress.timestamp);
-      return timestamp < cutoffTime && progress.step < 13; // Not completed
-    });
-  }
+-- Trigger to auto-assign and score new leads
+CREATE OR REPLACE FUNCTION process_new_lead()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Auto-assign the lead
+  NEW.assigned_to := auto_assign_lead(NEW.id);
 
-  // Get form analytics data
-  static getFormAnalytics(): {
-    totalForms: number;
-    completedForms: number;
-    abandonedForms: number;
-    averageStepReached: number;
-    conversionRate: number;
-  } {
-    const allProgress = this.getAllFormProgress();
-    const forms = Object.values(allProgress);
+  -- Calculate lead score
+  NEW.lead_score := calculate_lead_score(NEW.id);
 
-    const completedForms = forms.filter(f => f.step >= 13);
-    const abandonedForms = forms.filter(f => f.step < 13);
-    const averageStepReached = forms.length > 0
-      ? forms.reduce((sum, f) => sum + f.step, 0) / forms.length
-      : 0;
+  -- Set initial status if not provided
+  IF NEW.status IS NULL THEN
+    NEW.status := 'new';
+  END IF;
 
-    return {
-      totalForms: forms.length,
-      completedForms: completedForms.length,
-      abandonedForms: abandonedForms.length,
-      averageStepReached: Math.round(averageStepReached * 10) / 10,
-      conversionRate: forms.length > 0
-        ? Math.round((completedForms.length / forms.length) * 100)
-        : 0
-    };
-  }
-}
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-// Convenience functions
-export const saveFormProgress = SessionStorageManager.saveFormProgress;
-export const loadFormProgress = SessionStorageManager.loadFormProgress;
-export const clearFormProgress = SessionStorageManager.clearFormProgress;
-export const getAbandonedForms = SessionStorageManager.getAbandonedForms;
-export const getFormAnalytics = SessionStorageManager.getFormAnalytics;
+-- Create trigger for new lead processing
+DROP TRIGGER IF EXISTS trigger_process_new_lead ON contact_submissions;
+CREATE TRIGGER trigger_process_new_lead
+  BEFORE INSERT ON contact_submissions
+  FOR EACH ROW
+  EXECUTE FUNCTION process_new_lead();
 ```
 
 ## 📱 Part 3: Enhanced CRM Dashboard & Mobile Experience
@@ -2937,12 +2687,13 @@ spec:
 - **✅ Basic CRM Pages**: All navigation sections implemented
 - **✅ UI Component Library**: shadcn/ui components with consistent design system
 
-### Phase 2: Lead Capture Optimization (Weeks 3-4)
-- **Enhanced Multi-Step Forms**: 13-step form with TCPA compliance
-- **Advanced Analytics**: GA4, GTM, and Facebook Pixel integration
-- **Session Persistence**: Robust form data backup and recovery
-- **A/B Testing Framework**: Form variant testing for conversion optimization
-- **Mobile Form Optimization**: Touch-friendly interface improvements
+### Phase 2: ✅ COMPLETED - CRM Backend & API (Weeks 3-4)
+*Lead capture forms are live at [quantumsolar.us](https://quantumsolar.us/state-promotions/illinois/ameren-il)*
+- **✅ Enhanced CRM API Routes**: Type-safe endpoints with comprehensive validation
+- **✅ Real-time Dashboard Integration**: Supabase subscriptions for live updates
+- **✅ Database Functions & Triggers**: Auto-assignment and lead scoring
+- **✅ Activity Logging**: Comprehensive audit trail for all CRM actions
+- **✅ Lead Management System**: Status tracking and workload balancing
 
 ### Phase 3: CRM Dashboard Enhancement (Weeks 5-6)
 - **Responsive Dashboard**: Mobile-first project management interface
@@ -2975,21 +2726,21 @@ spec:
 ## 🎯 Success Metrics & Performance Targets
 
 ### 📊 Technical Performance Goals
-- **Form Load Time**: < 1 second for each step in multi-step forms
 - **Dashboard Response**: < 500ms for CRM dashboard data loading
 - **Mobile Performance**: 90+ Lighthouse scores on mobile devices
 - **API Response Time**: < 200ms for standard CRUD operations
 - **Search Performance**: < 100ms for project and lead search queries
+- **Real-time Updates**: < 50ms latency for Supabase real-time subscriptions
 
 ### 🚀 Business Impact Targets
-- **Lead Conversion**: 25% increase in form completion rates
+- **Lead Processing Speed**: 50% faster lead qualification and assignment
 - **Operational Efficiency**: 40% reduction in project management overhead
 - **Mobile Adoption**: 80% of field staff using mobile CRM interface
 - **Customer Satisfaction**: Improved project visibility and communication
-- **Legal Compliance**: 100% TCPA compliance for all communications
+- **Data Accuracy**: 95% reduction in manual data entry errors
 
 ### 📱 User Experience Metrics
-- **Form Abandonment**: < 30% abandonment rate at any single step
+- **Dashboard Load Time**: < 2 seconds for initial dashboard load
 - **Mobile Usability**: Touch-friendly interface with 95% accessibility score
 - **Dashboard Engagement**: > 80% of users accessing dashboard weekly
 - **Error Rates**: < 1% API error rate for critical business operations
