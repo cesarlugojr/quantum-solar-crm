@@ -11,6 +11,9 @@ export default function SignInPage() {
 
         <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
           <SignIn
+            path="/sign-in"
+            routing="path"
+            signUpUrl="/sign-up"
             fallbackRedirectUrl="/crm"
             appearance={{
               elements: {
