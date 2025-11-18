@@ -174,7 +174,7 @@ export default function CandidatesPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="bg-gray-900 p-6 rounded-lg">
           <h3 className="text-sm font-medium text-gray-400">Total Candidates</h3>
           <p className="text-2xl font-bold text-white mt-2">{candidates.length}</p>

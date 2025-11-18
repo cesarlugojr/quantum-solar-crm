@@ -104,8 +104,8 @@ export default function CampaignsPage() {
   }
 
   return (
-    <div className="p-8 bg-transparent">
-      <div className="flex justify-between items-center mb-8">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white">Email Campaigns</h1>
           <p className="text-gray-400 mt-2">Manage automated email drip campaigns</p>
