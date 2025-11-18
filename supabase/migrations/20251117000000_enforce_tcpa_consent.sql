@@ -283,7 +283,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-COMMENT ON FUNCTION enroll_lead_in_campaign IS 'Enroll a lead in an email drip campaign with TCPA consent caching for safety.';
+COMMENT ON FUNCTION enroll_lead_in_campaign(VARCHAR, TEXT, UUID) IS 'Enroll a lead in an email drip campaign with TCPA consent caching for safety.';
 
 -- ============================================================================
 -- Verification Query
