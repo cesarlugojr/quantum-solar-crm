@@ -74,17 +74,72 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data, error } = await supabase
+    // Extract sequences from body (they'll be created separately)
+    const { sequences, target_segment, ...campaignData } = body;
+
+    // Convert target_segment to trigger_conditions JSON
+    const trigger_conditions = target_segment || {};
+
+    // Create the campaign
+    const { data: campaign, error: campaignError } = await supabase
       .from('email_campaigns')
-      .insert(body)
+      .insert({
+        ...campaignData,
+        trigger_conditions,
+      })
       .select()
       .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (campaignError) {
+      console.error('Error creating campaign:', campaignError);
+      return NextResponse.json({ error: campaignError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ campaign: data });
+    // If sequences were provided, create them
+    if (sequences && Array.isArray(sequences) && sequences.length > 0) {
+      const sequencesToInsert = sequences.map((seq, index) => ({
+        campaign_id: campaign.id,
+        send_order: seq.sequence_number || index + 1,
+        delay_days: seq.delay_days || 0,
+        subject_template: seq.subject,
+        html_template: seq.html_template,
+        template_variables: seq.template_variables || [],
+        active: true,
+      }));
+
+      const { error: sequencesError } = await supabase
+        .from('email_sequences')
+        .insert(sequencesToInsert);
+
+      if (sequencesError) {
+        console.error('Error creating sequences:', sequencesError);
+
+        // Rollback: Delete the campaign since sequences failed
+        await supabase
+          .from('email_campaigns')
+          .delete()
+          .eq('id', campaign.id);
+
+        return NextResponse.json(
+          { error: `Campaign created but sequences failed: ${sequencesError.message}` },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Fetch the complete campaign with sequences
+    const { data: sequences: createdSequences } = await supabase
+      .from('email_sequences')
+      .select('*')
+      .eq('campaign_id', campaign.id)
+      .order('send_order', { ascending: true });
+
+    return NextResponse.json({
+      campaign: {
+        ...campaign,
+        sequences: createdSequences,
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error creating campaign:', error);
