@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the complete campaign with sequences
-    const { data: sequences: createdSequences } = await supabase
+    const { data: createdSequences } = await supabase
       .from('email_sequences')
       .select('*')
       .eq('campaign_id', campaign.id)
