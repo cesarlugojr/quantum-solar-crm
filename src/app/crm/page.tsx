@@ -25,7 +25,7 @@
 
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -68,17 +68,9 @@ interface JobCandidate {
 }
 
 export default function CRMDashboard() {
-  console.log('🏢 CRM PAGE: CRM Dashboard component mounting');
-  
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'leads' | 'projects' | 'candidates' | 'import'>('leads');
-  
-  console.log('👤 CRM PAGE: User state', {
-    isLoaded,
-    hasUser: !!user,
-    userEmail: user?.emailAddresses[0]?.emailAddress
-  });
   const [leads, setLeads] = useState<Lead[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [candidates, setCandidates] = useState<JobCandidate[]>([]);
@@ -106,14 +98,8 @@ export default function CRMDashboard() {
     }
   }, [user, isLoaded, router]);
 
-  // Load data on mount
-  useEffect(() => {
-    if (user) {
-      loadDashboardData();
-    }
-  }, [user]);
-
-  const loadDashboardData = async () => {
+  // Memoize data loading function to prevent re-render loops
+  const loadDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       // Load leads
@@ -183,7 +169,14 @@ export default function CRMDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Load data on mount
+  useEffect(() => {
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user, loadDashboardData]);
 
   // Status color mapping
   const getStatusColor = (status: string) => {

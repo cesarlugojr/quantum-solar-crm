@@ -17,7 +17,7 @@ interface Project {
   custom_id: string;
   customer_name: string;
   customer_email: string;
-  current_stage: string;
+  current_stage: string | number;
   system_size_kw: number;
   estimated_cost: number;
   assigned_to: string;
@@ -115,7 +115,8 @@ export const ProjectDashboard = () => {
     }
   };
 
-  const getStageColor = (stage: string): string => {
+  const getStageColor = (stage: string | number): string => {
+    const stageStr = String(stage);
     const stageColors: Record<string, string> = {
       'lead': 'bg-blue-100 text-blue-800',
       'contacted': 'bg-yellow-100 text-yellow-800',
@@ -129,23 +130,24 @@ export const ProjectDashboard = () => {
       'inspection_passed': 'bg-lime-100 text-lime-800',
       'pto_granted': 'bg-green-200 text-green-900'
     };
-    return stageColors[stage] || 'bg-gray-100 text-gray-800';
+    return stageColors[stageStr] || 'bg-gray-100 text-gray-800';
   };
 
-  const getStageProgress = (stage: string): number => {
+  const getStageProgress = (stage: string | number): number => {
+    const stageStr = String(stage);
     const stageOrder = [
       'lead', 'contacted', 'qualified', 'proposal_sent', 'contract_signed',
       'permits_submitted', 'permits_approved', 'installation_scheduled',
       'installation_complete', 'inspection_passed', 'pto_granted'
     ];
-    const index = stageOrder.indexOf(stage);
+    const index = stageOrder.indexOf(stageStr);
     return index >= 0 ? ((index + 1) / stageOrder.length) * 100 : 0;
   };
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          project.custom_id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStage = stageFilter === 'all' || project.current_stage === stageFilter;
+    const matchesStage = stageFilter === 'all' || String(project.current_stage) === stageFilter;
     return matchesSearch && matchesStage;
   });
 
@@ -301,7 +303,7 @@ export const ProjectDashboard = () => {
               {/* Stage Badge */}
               <div className="flex justify-between items-center">
                 <Badge className={getStageColor(project.current_stage)}>
-                  {project.current_stage.replace('_', ' ').toUpperCase()}
+                  {String(project.current_stage).replace(/_/g, ' ').toUpperCase()}
                 </Badge>
                 <span className="text-sm text-gray-600">
                   {project.system_size_kw}kW
