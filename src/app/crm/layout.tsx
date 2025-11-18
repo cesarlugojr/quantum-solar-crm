@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { NotificationsDropdown } from '@/components/crm/NotificationsDropdown';
 import {
   Bell,
   Settings,
@@ -128,17 +129,7 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
               </Badge>
 
               {/* Notifications */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-400 hover:text-white relative"
-                onClick={() => router.push('/crm/notifications')}
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                  3
-                </span>
-              </Button>
+              <NotificationsDropdown />
 
               {/* User Menu */}
               <div className="relative">

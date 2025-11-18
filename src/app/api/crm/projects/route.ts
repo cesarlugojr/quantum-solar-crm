@@ -81,17 +81,17 @@ export async function GET(request: NextRequest) {
         console.error('Error fetching projects:', error);
         // Return empty array if table doesn't exist yet
         if (error.code === 'PGRST205') {
-          return NextResponse.json([]);
+          return NextResponse.json({ data: [] });
         }
         return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
       }
 
-      return NextResponse.json(projects || []);
+      return NextResponse.json({ data: projects || [] });
     }
   } catch (error) {
     console.error('Error in CRM projects API:', error);
     // Return empty array for database connection issues
-    return NextResponse.json([]);
+    return NextResponse.json({ data: [] });
   }
 }
 
