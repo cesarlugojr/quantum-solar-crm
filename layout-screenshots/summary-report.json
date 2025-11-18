@@ -1,0 +1,26 @@
+{
+  "dashboard": {
+    "issues": [],
+    "spacings": []
+  },
+  "leads": {
+    "issues": [],
+    "spacings": []
+  },
+  "projects": {
+    "issues": [],
+    "spacings": []
+  },
+  "campaigns": {
+    "issues": [],
+    "spacings": []
+  },
+  "candidates": {
+    "issues": [],
+    "spacings": []
+  },
+  "campaigns-new": {
+    "issues": [],
+    "spacings": []
+  }
+}
