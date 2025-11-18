@@ -252,7 +252,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               <main className="flex-1 overflow-y-auto">
                 {children}
               </main>
-              <FooterSection />
             </div>
           </div>
           <SpeedInsights />
