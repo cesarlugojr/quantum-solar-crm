@@ -8,9 +8,9 @@ export default function SignInPage() {
           <h1 className="text-3xl font-bold text-white mb-2">Quantum Solar CRM</h1>
           <p className="text-gray-300">Sign in to access your dashboard</p>
         </div>
-        
+
         <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-          <SignIn 
+          <SignIn
             fallbackRedirectUrl="/crm"
             appearance={{
               elements: {
