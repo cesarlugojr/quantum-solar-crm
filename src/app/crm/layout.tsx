@@ -187,8 +187,15 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } bg-gray-900 border-r border-gray-800 lg:translate-x-0`}
       >
-        <div className="h-full px-3 pb-4 overflow-y-auto">
-          <ul className="space-y-2 font-medium">
+        <div className="h-full px-3 pb-4 overflow-y-auto flex flex-col">
+          {/* Sidebar Header */}
+          <div className="mb-6 pb-4 border-b border-gray-800">
+            <h2 className="text-white font-bold text-lg">QUANTUM SOLAR</h2>
+            <p className="text-gray-400 text-sm">CRM Platform</p>
+          </div>
+
+          {/* Navigation */}
+          <ul className="space-y-2 font-medium flex-1">
             {navigation.map((item) => {
               const isActive = false; // You can implement active state logic here
               return (
@@ -212,6 +219,21 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
               );
             })}
           </ul>
+
+          {/* Sidebar Footer */}
+          <div className="pt-4 mt-4 border-t border-gray-800">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#ff0000] to-[#cc0000] rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">
+                  {user?.firstName?.[0]}{user?.lastName?.[0]}
+                </span>
+              </div>
+              <div className="flex-1">
+                <p className="text-white text-sm font-medium">Team Member</p>
+                <p className="text-gray-400 text-xs">CRM Access</p>
+              </div>
+            </div>
+          </div>
         </div>
       </aside>
 
