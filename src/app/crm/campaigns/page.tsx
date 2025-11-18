@@ -104,58 +104,58 @@ export default function CampaignsPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-8 bg-transparent">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Email Campaigns</h1>
-          <p className="text-gray-600 mt-2">Manage automated email drip campaigns</p>
+          <h1 className="text-3xl font-bold text-white">Email Campaigns</h1>
+          <p className="text-gray-400 mt-2">Manage automated email drip campaigns</p>
         </div>
-        <Button asChild>
+        <Button asChild className="bg-[#ff0000] hover:bg-[#cc0000] text-white">
           <Link href="/crm/campaigns/new">Create Campaign</Link>
         </Button>
       </div>
 
       {campaigns.length === 0 ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-12 text-center">
-          <p className="text-gray-600 mb-4">No campaigns created yet</p>
-          <Button asChild>
+        <div className="bg-gray-900 border border-gray-700 rounded-lg p-12 text-center">
+          <p className="text-gray-400 mb-4">No campaigns created yet</p>
+          <Button asChild className="bg-[#ff0000] hover:bg-[#cc0000] text-white">
             <Link href="/crm/campaigns/new">Create Your First Campaign</Link>
           </Button>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-xl">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Campaign Name</TableHead>
-                <TableHead>Trigger Type</TableHead>
-                <TableHead>Emails</TableHead>
-                <TableHead>Enrollments</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+              <TableRow className="border-gray-700 hover:bg-gray-800/50">
+                <TableHead className="text-gray-300">Campaign Name</TableHead>
+                <TableHead className="text-gray-300">Trigger Type</TableHead>
+                <TableHead className="text-gray-300">Emails</TableHead>
+                <TableHead className="text-gray-300">Enrollments</TableHead>
+                <TableHead className="text-gray-300">Status</TableHead>
+                <TableHead className="text-gray-300">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {campaigns.map((campaign) => (
-                <TableRow key={campaign.id}>
+                <TableRow key={campaign.id} className="border-gray-700 hover:bg-gray-800/30">
                   <TableCell>
                     <div>
-                      <p className="font-medium text-gray-900">{campaign.name}</p>
-                      <p className="text-sm text-gray-500">{campaign.description}</p>
+                      <p className="font-medium text-white">{campaign.name}</p>
+                      <p className="text-sm text-gray-400">{campaign.description}</p>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">
+                    <Badge variant="outline" className="border-gray-600 text-gray-300">
                       {campaign.trigger_type.replace('_', ' ')}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-gray-300">
                     {campaign.sequences?.length || 0} emails
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      <p className="font-medium">{campaign.stats?.totalEnrollments || 0} total</p>
-                      <p className="text-gray-500">{campaign.stats?.activeEnrollments || 0} active</p>
+                      <p className="font-medium text-white">{campaign.stats?.totalEnrollments || 0} total</p>
+                      <p className="text-gray-400">{campaign.stats?.activeEnrollments || 0} active</p>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -164,19 +164,19 @@ export default function CampaignsPage() {
                         checked={campaign.active}
                         onCheckedChange={() => toggleCampaignActive(campaign.id, campaign.active)}
                       />
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-300">
                         {campaign.active ? 'Active' : 'Inactive'}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button asChild variant="outline" size="sm">
+                      <Button asChild variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
                         <Link href={`/crm/campaigns/${campaign.id}`}>
                           Edit
                         </Link>
                       </Button>
-                      <Button asChild variant="ghost" size="sm">
+                      <Button asChild variant="ghost" size="sm" className="text-gray-300 hover:bg-gray-800">
                         <Link href={`/crm/campaigns/${campaign.id}/analytics`}>
                           Analytics
                         </Link>

@@ -1,4 +1,17 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
+import { CRMSidebar } from './CRMSidebar';
+
 export function ConditionalNavigation() {
-  // No navigation needed for CRM-only application
-  return null;
+  const pathname = usePathname();
+
+  // Show sidebar only for CRM routes
+  const isCRMRoute = pathname?.startsWith('/crm');
+
+  if (!isCRMRoute) {
+    return null;
+  }
+
+  return <CRMSidebar />;
 }

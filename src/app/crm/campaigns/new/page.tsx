@@ -125,16 +125,16 @@ export default function NewCampaignPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-transparent p-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Link href="/crm/campaigns" className="flex items-center text-gray-600 hover:text-gray-900 mb-4">
+          <Link href="/crm/campaigns" className="flex items-center text-gray-400 hover:text-white mb-4 transition-colors">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Campaigns
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Create New Campaign</h1>
-          <p className="text-gray-600 mt-2">Build an automated email drip campaign to nurture leads</p>
+          <h1 className="text-3xl font-bold text-white">Create New Campaign</h1>
+          <p className="text-gray-400 mt-2">Build an automated email drip campaign to nurture leads</p>
         </div>
 
         {/* Form */}
@@ -149,10 +149,10 @@ export default function NewCampaignPage() {
 
             {/* Tab 1: Campaign Details */}
             <TabsContent value="details">
-              <Card>
+              <Card className="bg-gray-900 border-gray-700">
                 <CardHeader>
-                  <CardTitle>Campaign Information</CardTitle>
-                  <CardDescription>Basic details about your email campaign</CardDescription>
+                  <CardTitle className="text-white">Campaign Information</CardTitle>
+                  <CardDescription className="text-gray-400">Basic details about your email campaign</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>

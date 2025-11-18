@@ -240,17 +240,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </Script>
 
         <ConditionalClerkProvider>
-          {/* 
+          {/*
             Layout Structure
-            - Navigation fixed at top
+            - Sidebar navigation for CRM routes
             - Main content area flexes to fill space
             - Footer anchored at bottom
           */}
-          <ConditionalNavigation />
-          <main className="flex-1">
-            {children}
-          </main>
-          <FooterSection />
+          <div className="flex h-screen overflow-hidden">
+            <ConditionalNavigation />
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <main className="flex-1 overflow-y-auto">
+                {children}
+              </main>
+              <FooterSection />
+            </div>
+          </div>
           <SpeedInsights />
           <Analytics />
         </ConditionalClerkProvider>
