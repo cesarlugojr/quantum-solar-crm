@@ -27,7 +27,8 @@ import {
   Calendar,
   FileText,
   Menu,
-  X
+  X,
+  Mail
 } from 'lucide-react';
 
 interface CRMLayoutProps {
@@ -82,6 +83,7 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
     { name: 'Leads', href: '/crm/leads', icon: Users },
     { name: 'Projects', href: '/crm/projects', icon: Building2 },
     { name: 'Candidates', href: '/crm/candidates', icon: Briefcase },
+    { name: 'Campaigns', href: '/crm/campaigns', icon: Mail },
     { name: 'Analytics', href: '/crm/analytics', icon: BarChart3 },
     { name: 'Messages', href: '/crm/messages', icon: MessageSquare },
     { name: 'Calendar', href: '/crm/calendar', icon: Calendar },
