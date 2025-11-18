@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 /**
@@ -12,7 +12,7 @@ import { createClient } from '@supabase/supabase-js';
  * Only run this ONCE after the email_drip_system migration is applied.
  */
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Initialize Supabase client
     const supabase = createClient(
@@ -20,11 +20,16 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    interface ResultItem {
+      status?: string;
+      [key: string]: unknown;
+    }
+
     const results = {
-      campaigns: [] as any[],
-      templates: [] as any[],
-      sequences: [] as any[],
-      errors: [] as any[]
+      campaigns: [] as ResultItem[],
+      templates: [] as ResultItem[],
+      sequences: [] as ResultItem[],
+      errors: [] as ResultItem[]
     };
 
     // ========================================================================
@@ -169,7 +174,7 @@ export async function POST(request: NextRequest) {
     ];
 
     for (const seq of sequences) {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('email_sequences')
         .insert({
           campaign_id: camp1.id,
@@ -207,12 +212,14 @@ export async function POST(request: NextRequest) {
       details: results
     }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    const stack = error instanceof Error ? error.stack : undefined;
     console.error('Campaign seeding error:', error);
     return NextResponse.json({
       success: false,
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: message,
+      stack: process.env.NODE_ENV === 'development' ? stack : undefined
     }, { status: 500 });
   }
 }

@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -40,14 +39,13 @@ interface Campaign {
   name: string;
   description: string;
   trigger_type: string;
-  trigger_conditions: any;
+  trigger_conditions: Record<string, unknown>;
   active: boolean;
   sequences: EmailSequence[];
 }
 
 export default function CampaignDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const campaignId = params.id as string;
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -56,11 +54,7 @@ export default function CampaignDetailPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [showEditor, setShowEditor] = useState(false);
 
-  useEffect(() => {
-    fetchCampaign();
-  }, [campaignId]);
-
-  const fetchCampaign = async () => {
+  const fetchCampaign = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/crm/campaigns');
@@ -76,12 +70,17 @@ export default function CampaignDetailPage() {
           setError('Campaign not found');
         }
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId]);
+
+  useEffect(() => {
+    fetchCampaign();
+  }, [fetchCampaign]);
 
   const handleEditTemplate = (template: EmailTemplate) => {
     setSelectedTemplate(template);
@@ -281,8 +280,9 @@ function TemplateEditor({ template, onClose }: { template: EmailTemplate; onClos
         alert('Template saved successfully!');
         onClose();
       }
-    } catch (err: any) {
-      alert('Error: ' + err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      alert('Error: ' + message);
     } finally {
       setSaving(false);
     }

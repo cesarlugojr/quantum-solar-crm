@@ -21,7 +21,7 @@ interface Campaign {
   trigger_type: string;
   active: boolean;
   created_at: string;
-  sequences?: any[];
+  sequences?: unknown[];
   stats?: {
     totalEnrollments: number;
     activeEnrollments: number;
@@ -48,8 +48,9 @@ export default function CampaignsPage() {
       } else {
         setCampaigns(data.campaigns || []);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -76,8 +77,9 @@ export default function CampaignsPage() {
           c.id === campaignId ? { ...c, active: !currentActive } : c
         ));
       }
-    } catch (err: any) {
-      alert('Error: ' + err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      alert('Error: ' + message);
     }
   };
 
