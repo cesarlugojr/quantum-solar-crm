@@ -87,6 +87,7 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
     { name: 'Analytics', href: '/crm/analytics', icon: BarChart3 },
     { name: 'Messages', href: '/crm/messages', icon: MessageSquare },
     { name: 'Calendar', href: '/crm/calendar', icon: Calendar },
+    { name: 'Notifications', href: '/crm/notifications', icon: Bell },
     { name: 'Reports', href: '/crm/reports', icon: FileText },
   ];
 
@@ -127,7 +128,12 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
               </Badge>
 
               {/* Notifications */}
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:text-white relative"
+                onClick={() => router.push('/crm/notifications')}
+              >
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
                   3
