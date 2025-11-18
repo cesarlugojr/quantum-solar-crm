@@ -353,10 +353,10 @@ export default function CRMDashboard() {
         </div>
 
         {/* Tabs Navigation */}
-        <div className="flex space-x-1 mb-6 bg-gray-800 p-1 rounded-lg w-fit">
+        <div className="flex flex-wrap gap-2 mb-6 bg-gray-800 p-2 rounded-lg w-full md:w-fit">
           <button
             onClick={() => setActiveTab('leads')}
-            className={`px-4 py-2 rounded-md font-medium transition-colors ${
+            className={`px-6 py-2.5 rounded-md font-medium transition-colors ${
               activeTab === 'leads'
                 ? 'bg-[#ff0000] text-white'
                 : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -366,7 +366,7 @@ export default function CRMDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('projects')}
-            className={`px-4 py-2 rounded-md font-medium transition-colors ${
+            className={`px-6 py-2.5 rounded-md font-medium transition-colors ${
               activeTab === 'projects'
                 ? 'bg-[#ff0000] text-white'
                 : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -376,7 +376,7 @@ export default function CRMDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('candidates')}
-            className={`px-4 py-2 rounded-md font-medium transition-colors ${
+            className={`px-6 py-2.5 rounded-md font-medium transition-colors ${
               activeTab === 'candidates'
                 ? 'bg-[#ff0000] text-white'
                 : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -387,7 +387,7 @@ export default function CRMDashboard() {
           {(userRole === 'admin' || userRole === 'manager') && (
             <button
               onClick={() => setActiveTab('import')}
-              className={`px-4 py-2 rounded-md font-medium transition-colors ${
+              className={`px-6 py-2.5 rounded-md font-medium transition-colors ${
                 activeTab === 'import'
                   ? 'bg-[#ff0000] text-white'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700'

@@ -224,8 +224,8 @@ export default function CRMLayout({ children }: CRMLayoutProps) {
       )}
 
       {/* Main content */}
-      <div className="p-4 lg:ml-64 pt-20">
-        <div className="rounded-lg">
+      <div className="p-6 sm:p-8 lg:ml-64 lg:p-8 pt-24">
+        <div className="rounded-lg max-w-7xl">
           {children}
         </div>
       </div>
