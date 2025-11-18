@@ -62,3 +62,7 @@ dist/
 *.mp4
 *.mov
 *.avi
+
+# clerk configuration (can include secrets)
+/.clerk/
+.env*.local

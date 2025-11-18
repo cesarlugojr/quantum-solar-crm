@@ -50,17 +50,17 @@ export const ProjectDashboard = () => {
       switch (eventType) {
         case 'INSERT':
           // Add new project to list
-          return [newRecord, ...prevProjects];
+          return [newRecord as Project, ...prevProjects];
 
         case 'UPDATE':
           // Update existing project
           return prevProjects.map(project =>
-            project.id === newRecord.id ? { ...project, ...newRecord } : project
+            project.id === (newRecord as Project).id ? { ...project, ...newRecord as Project } : project
           );
 
         case 'DELETE':
           // Remove deleted project
-          return prevProjects.filter(project => project.id !== oldRecord.id);
+          return prevProjects.filter(project => project.id !== (oldRecord as Project).id);
 
         default:
           return prevProjects;
@@ -68,10 +68,12 @@ export const ProjectDashboard = () => {
     });
 
     // Show toast notification for updates
-    if (eventType === 'UPDATE' && newRecord.current_stage !== oldRecord?.current_stage) {
+    const newProj = newRecord as Project;
+    const oldProj = oldRecord as Project | undefined;
+    if (eventType === 'UPDATE' && newProj.current_stage !== oldProj?.current_stage) {
       toast({
         title: 'Project Updated',
-        description: `${newRecord.customer_name}'s project moved to ${newRecord.current_stage}`,
+        description: `${newProj.customer_name}'s project moved to ${newProj.current_stage}`,
         duration: 3000,
       });
     }
