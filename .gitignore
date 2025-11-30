@@ -66,3 +66,9 @@ dist/
 # clerk configuration (can include secrets)
 /.clerk/
 .env*.local
+
+# Temporary files
+pnpm-lock.yaml
+test-migration.sql
+**/test-route/
+**/*\ 2.*
