@@ -731,8 +731,9 @@ export function formatPercentage(value: number, decimals: number = 1): string {
 }
 
 // Helper function to get status color
-export function getLeadStatusColor(status: LeadStatus): string {
-  const colors: Record<LeadStatus, string> = {
+export function getLeadStatusColor(status: LeadStatus | LeadMainStatus | string): string {
+  const colors: Record<string, string> = {
+    // Legacy statuses
     new: 'bg-blue-500',
     contacted: 'bg-yellow-500',
     qualified: 'bg-green-500',
@@ -741,6 +742,9 @@ export function getLeadStatusColor(status: LeadStatus): string {
     won: 'bg-green-600',
     lost: 'bg-red-500',
     disqualified: 'bg-gray-500',
+    // New statuses
+    appointment_scheduled: 'bg-green-500',
+    lead_lost: 'bg-red-500',
   };
   return colors[status] || 'bg-gray-500';
 }
