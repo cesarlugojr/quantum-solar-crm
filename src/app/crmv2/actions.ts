@@ -511,6 +511,230 @@ export async function getOpportunityStats(): Promise<{
 }
 
 // ============================================
+// REPORTS DATA
+// ============================================
+
+export async function getReportData(reportType: 'adders' | 'average-days' | 'monthly-kw'): Promise<any> {
+  try {
+    switch (reportType) {
+      case 'adders': {
+        // Try materialized view first
+        const { data: mvData, error: mvError } = await supabase
+          .from('mv_adders_breakdown')
+          .select('*')
+          .single();
+
+        if (!mvError && mvData) {
+          return mvData;
+        }
+
+        // Fallback: Calculate from projects table
+        const { data: projects } = await supabase
+          .from('projects')
+          .select('has_mpu, has_battery, has_trench');
+
+        if (!projects) return null;
+
+        const stats = {
+          mpu_only: 0,
+          battery_only: 0,
+          trench_only: 0,
+          mpu_battery: 0,
+          mpu_trench: 0,
+          battery_trench: 0,
+          mpu_battery_trench: 0,
+          no_adders: 0,
+          total_projects: projects.length,
+        };
+
+        projects.forEach((p) => {
+          const hasMpu = p.has_mpu || false;
+          const hasBattery = p.has_battery || false;
+          const hasTrench = p.has_trench || false;
+
+          if (hasMpu && hasBattery && hasTrench) {
+            stats.mpu_battery_trench++;
+          } else if (hasMpu && hasBattery) {
+            stats.mpu_battery++;
+          } else if (hasMpu && hasTrench) {
+            stats.mpu_trench++;
+          } else if (hasBattery && hasTrench) {
+            stats.battery_trench++;
+          } else if (hasMpu) {
+            stats.mpu_only++;
+          } else if (hasBattery) {
+            stats.battery_only++;
+          } else if (hasTrench) {
+            stats.trench_only++;
+          } else {
+            stats.no_adders++;
+          }
+        });
+
+        return stats;
+      }
+
+      case 'average-days': {
+        // Try materialized view first
+        const { data: mvData, error: mvError } = await supabase
+          .from('mv_average_days_metrics')
+          .select('*')
+          .order('month', { ascending: false })
+          .limit(12);
+
+        if (!mvError && mvData && mvData.length > 0) {
+          return mvData;
+        }
+
+        // Fallback: Calculate from projects table
+        const { data: projects } = await supabase
+          .from('projects')
+          .select(`
+            permitting_approved_date,
+            installation_scheduled_date,
+            installation_complete_date,
+            inspection_scheduled_date,
+            inspection_complete_date
+          `)
+          .not('permitting_approved_date', 'is', null);
+
+        if (!projects || projects.length === 0) return [];
+
+        // Group by month and calculate averages
+        const monthlyData: Record<string, any> = {};
+
+        projects.forEach((p) => {
+          if (!p.permitting_approved_date) return;
+
+          const month = p.permitting_approved_date.substring(0, 7) + '-01';
+
+          if (!monthlyData[month]) {
+            monthlyData[month] = {
+              month,
+              permit_to_install: [],
+              install_to_complete: [],
+              install_to_inspection: [],
+              inspection_time: [],
+              project_count: 0,
+            };
+          }
+
+          monthlyData[month].project_count++;
+
+          if (p.installation_scheduled_date && p.permitting_approved_date) {
+            const days = Math.abs(
+              new Date(p.installation_scheduled_date).getTime() -
+              new Date(p.permitting_approved_date).getTime()
+            ) / (1000 * 60 * 60 * 24);
+            monthlyData[month].permit_to_install.push(days);
+          }
+
+          if (p.installation_complete_date && p.installation_scheduled_date) {
+            const days = Math.abs(
+              new Date(p.installation_complete_date).getTime() -
+              new Date(p.installation_scheduled_date).getTime()
+            ) / (1000 * 60 * 60 * 24);
+            monthlyData[month].install_to_complete.push(days);
+          }
+
+          if (p.inspection_scheduled_date && p.installation_complete_date) {
+            const days = Math.abs(
+              new Date(p.inspection_scheduled_date).getTime() -
+              new Date(p.installation_complete_date).getTime()
+            ) / (1000 * 60 * 60 * 24);
+            monthlyData[month].install_to_inspection.push(days);
+          }
+
+          if (p.inspection_complete_date && p.inspection_scheduled_date) {
+            const days = Math.abs(
+              new Date(p.inspection_complete_date).getTime() -
+              new Date(p.inspection_scheduled_date).getTime()
+            ) / (1000 * 60 * 60 * 24);
+            monthlyData[month].inspection_time.push(days);
+          }
+        });
+
+        const result = Object.values(monthlyData).map((m: any) => ({
+          month: m.month,
+          avg_days_permit_to_install_scheduled:
+            m.permit_to_install.length > 0
+              ? m.permit_to_install.reduce((a: number, b: number) => a + b, 0) / m.permit_to_install.length
+              : null,
+          avg_days_install_scheduled_to_complete:
+            m.install_to_complete.length > 0
+              ? m.install_to_complete.reduce((a: number, b: number) => a + b, 0) / m.install_to_complete.length
+              : null,
+          avg_days_install_to_inspection:
+            m.install_to_inspection.length > 0
+              ? m.install_to_inspection.reduce((a: number, b: number) => a + b, 0) / m.install_to_inspection.length
+              : null,
+          avg_days_inspection_scheduled_to_complete:
+            m.inspection_time.length > 0
+              ? m.inspection_time.reduce((a: number, b: number) => a + b, 0) / m.inspection_time.length
+              : null,
+          project_count: m.project_count,
+        }));
+
+        return result.sort((a, b) => b.month.localeCompare(a.month));
+      }
+
+      case 'monthly-kw': {
+        // Try materialized view first
+        const { data: mvData, error: mvError } = await supabase
+          .from('mv_monthly_kw_permitted')
+          .select('*')
+          .order('month', { ascending: false })
+          .limit(12);
+
+        if (!mvError && mvData && mvData.length > 0) {
+          return mvData;
+        }
+
+        // Fallback: Calculate from projects table
+        const { data: projects } = await supabase
+          .from('projects')
+          .select('permitting_approved_date, system_size_kw')
+          .not('permitting_approved_date', 'is', null)
+          .not('system_size_kw', 'is', null);
+
+        if (!projects || projects.length === 0) return [];
+
+        // Group by month
+        const monthlyData: Record<string, { total_kw: number; count: number }> = {};
+
+        projects.forEach((p) => {
+          if (!p.permitting_approved_date || !p.system_size_kw) return;
+
+          const month = p.permitting_approved_date.substring(0, 7) + '-01';
+
+          if (!monthlyData[month]) {
+            monthlyData[month] = { total_kw: 0, count: 0 };
+          }
+
+          monthlyData[month].total_kw += p.system_size_kw;
+          monthlyData[month].count++;
+        });
+
+        const result = Object.entries(monthlyData).map(([month, data]) => ({
+          month,
+          total_kw: data.total_kw,
+          project_count: data.count,
+          avg_kw_per_project: data.count > 0 ? data.total_kw / data.count : 0,
+        }));
+
+        return result.sort((a, b) => b.month.localeCompare(a.month));
+      }
+
+      default:
+        return null;
+    }
+  } catch (error) {
+    console.error('Error fetching report data:', error);
+    return null;
+  }
+}
+
+// ============================================
 // UTILITY FUNCTIONS
 // ============================================
 
