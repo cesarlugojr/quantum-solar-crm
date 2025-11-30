@@ -10,6 +10,7 @@ import type {
   ProjectV2,
   CandidateV2,
   Campaign,
+  OpportunityV2,
 } from '@/types/crmv2';
 
 // Initialize Supabase client with service role key for server actions
@@ -410,6 +411,102 @@ export async function getCampaigns(): Promise<Campaign[]> {
   } catch (error) {
     console.error('Error fetching campaigns:', error);
     return [];
+  }
+}
+
+// ============================================
+// OPPORTUNITIES DATA
+// ============================================
+
+export async function getOpportunities(limit: number = 50, offset: number = 0): Promise<OpportunityV2[]> {
+  try {
+    const { data, error } = await supabase
+      .from('opportunities')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching opportunities:', error);
+    return [];
+  }
+}
+
+export async function getOpportunityById(id: string): Promise<OpportunityV2 | null> {
+  try {
+    const { data, error } = await supabase
+      .from('opportunities')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching opportunity:', error);
+    return null;
+  }
+}
+
+export async function getOpportunityStats(): Promise<{
+  scheduled: number;
+  followupNeeded: number;
+  followupBooked: number;
+  sales: number;
+  lost: number;
+  total: number;
+}> {
+  try {
+    const { data, error } = await supabase
+      .from('opportunities')
+      .select('status');
+
+    if (error) throw error;
+
+    const stats = {
+      scheduled: 0,
+      followupNeeded: 0,
+      followupBooked: 0,
+      sales: 0,
+      lost: 0,
+      total: data?.length || 0,
+    };
+
+    data?.forEach((opp) => {
+      switch (opp.status) {
+        case 'appointment_scheduled':
+          stats.scheduled++;
+          break;
+        case 'followup_needed':
+          stats.followupNeeded++;
+          break;
+        case 'followup_booked':
+          stats.followupBooked++;
+          break;
+        case 'sale':
+          stats.sales++;
+          break;
+        case 'opportunity_lost':
+          stats.lost++;
+          break;
+      }
+    });
+
+    return stats;
+  } catch (error) {
+    console.error('Error fetching opportunity stats:', error);
+    return {
+      scheduled: 0,
+      followupNeeded: 0,
+      followupBooked: 0,
+      sales: 0,
+      lost: 0,
+      total: 0,
+    };
   }
 }
 
