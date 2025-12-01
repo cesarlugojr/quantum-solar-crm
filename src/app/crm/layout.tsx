@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useUser, UserButton } from '@clerk/nextjs';
 import {
@@ -83,10 +84,14 @@ export default function CRMLayout({
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
           <div className="flex h-16 items-center justify-between border-b border-gray-700 px-6">
-            <Link href="/crm" className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#ff0000] to-[#cc0000] flex items-center justify-center">
-                <span className="text-white font-bold text-lg">Q</span>
-              </div>
+            <Link href="/crm" className="flex items-center space-x-3">
+              <Image
+                src="/Quantum Solar-LOGO-B1 cropped.png"
+                alt="Quantum Solar"
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain"
+              />
               <div>
                 <p className="text-white font-semibold text-sm">Quantum Solar</p>
                 <p className="text-gray-400 text-xs">CRM</p>
