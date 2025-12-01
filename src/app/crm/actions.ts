@@ -341,16 +341,24 @@ export async function getCashFlowForecast(weeks: number = 13): Promise<CashFlowF
 
 export async function getLeads(limit: number = 50, offset: number = 0): Promise<LeadV2[]> {
   try {
-    // Query splash_leads (the actual leads table with data)
+    // Query splash_leads - only those with email, phone, or address
     const { data, error } = await supabase
       .from('splash_leads')
       .select('*')
+      .or('email.neq.,phone.neq.,address.neq.')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (error) throw error;
 
-    return (data || []).map((lead: any) => ({
+    // Filter out leads without contact info (double-check client side)
+    const filteredData = (data || []).filter((lead: any) =>
+      (lead.email && lead.email.trim() !== '') ||
+      (lead.phone && lead.phone.trim() !== '') ||
+      (lead.address && lead.address.trim() !== '')
+    );
+
+    return filteredData.map((lead: any) => ({
       ...lead,
       name: `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || lead.name,
       location: lead.address
@@ -361,6 +369,32 @@ export async function getLeads(limit: number = 50, offset: number = 0): Promise<
   } catch (error) {
     console.error('Error fetching leads:', error);
     return [];
+  }
+}
+
+export async function getLeadById(id: string): Promise<LeadV2 | null> {
+  try {
+    const { data, error } = await supabase
+      .from('splash_leads')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    if (!data) return null;
+
+    return {
+      ...data,
+      name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || data.name,
+      location: data.address
+        ? `${data.city || ''}, ${data.state || ''} ${data.zip_code || ''}`.trim()
+        : data.location,
+      status: data.status || 'new',
+    };
+  } catch (error) {
+    console.error('Error fetching lead:', error);
+    return null;
   }
 }
 
@@ -382,6 +416,23 @@ export async function getProjects(limit: number = 50, offset: number = 0): Promi
   } catch (error) {
     console.error('Error fetching projects:', error);
     return [];
+  }
+}
+
+export async function getProjectById(id: string): Promise<ProjectV2 | null> {
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching project:', error);
+    return null;
   }
 }
 
@@ -413,6 +464,31 @@ export async function getCandidates(limit: number = 50, offset: number = 0): Pro
   }
 }
 
+export async function getCandidateById(id: string): Promise<CandidateV2 | null> {
+  try {
+    const { data, error } = await supabase
+      .from('job_applications')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    if (!data) return null;
+
+    return {
+      ...data,
+      name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || data.name || data.full_name,
+      position: data.position || data.desired_position || 'Not specified',
+      status: data.status || 'applied',
+      created_at: data.submitted_at || data.created_at,
+    };
+  } catch (error) {
+    console.error('Error fetching candidate:', error);
+    return null;
+  }
+}
+
 // ============================================
 // CAMPAIGNS DATA
 // ============================================
@@ -436,6 +512,29 @@ export async function getCampaigns(): Promise<Campaign[]> {
   } catch (error) {
     console.error('Error fetching campaigns:', error);
     return [];
+  }
+}
+
+export async function getCampaignById(id: string): Promise<Campaign | null> {
+  try {
+    const { data, error } = await supabase
+      .from('email_campaigns')
+      .select(`
+        *,
+        sequences:email_sequences(
+          *,
+          email_templates(*)
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching campaign:', error);
+    return null;
   }
 }
 
