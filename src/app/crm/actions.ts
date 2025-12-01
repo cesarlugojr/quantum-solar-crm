@@ -423,13 +423,18 @@ export async function getLeadById(id: string): Promise<LeadV2 | null> {
 
     if (!data) return null;
 
+    // Map all fields from splash_leads to LeadV2
     return {
+      // Spread all raw data first
       ...data,
+      // Computed/formatted fields
       name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || data.name,
-      location: data.address
+      location: (data.address || data.street_address)
         ? `${data.city || ''}, ${data.state || ''} ${data.zip_code || ''}`.trim()
         : data.location,
       status: data.status || 'new',
+      // Map shading field to shading_concerns for display
+      shading_concerns: data.shading || data.shading_concerns,
     };
   } catch (error) {
     console.error('Error fetching lead:', error);

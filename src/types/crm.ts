@@ -238,11 +238,24 @@ export interface LeadV2 {
   utility_company?: string;
   average_monthly_bill?: number;
   electric_bill?: number;  // Alias for backward compatibility
-  homeowner_status?: HomeownerStatus;
-  credit_score?: CreditScore;
+  homeowner_status?: HomeownerStatus | string;
+  credit_score?: CreditScore | string;
   property_type?: string;
   roof_condition?: string;
+  roof_material?: string;
   shading_concerns?: string;
+  existing_solar?: boolean;
+  hoa_restrictions?: boolean;
+
+  // Property details
+  home_square_footage?: number;
+  energy_usage_pattern?: string;
+
+  // Preferences
+  financing_preference?: string;
+  timeline_preference?: string;
+  preferred_contact_time?: string;
+  how_heard_about_us?: string;
 
   // Lead management - Enhanced status system
   status: LeadStatus | LeadMainStatus;
@@ -251,10 +264,31 @@ export interface LeadV2 {
   assigned_to?: string;
   source_campaign?: string;
   source_medium?: string;
-  lost_reason?: LeadLostReason;
+  lost_reason?: LeadLostReason | string;
+
+  // Lead scoring and qualification
+  lead_score?: number;
+  qualification_status?: string;
+
+  // Form metadata
+  form_type?: string;
+  form_variant?: string;
+  source?: string;
+  is_partial?: boolean;
+  current_step?: number;
+
+  // UTM tracking
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+
+  // Technical tracking
+  ip_address?: string;
+  user_agent?: string;
 
   // Appointment (when status = appointment_scheduled)
   appointment_date?: string;
+  follow_up_date?: string;
 
   // Contact tracking
   last_contacted_at?: string;
@@ -265,9 +299,11 @@ export interface LeadV2 {
   // Timestamps
   created_at: string;
   updated_at?: string;
+  completed_at?: string;
 
   // Additional metadata
   notes?: string;
+  additional_notes?: string;
   tags?: string[];
 }
 
