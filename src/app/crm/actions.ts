@@ -722,6 +722,36 @@ export async function getCampaignStats(campaignId: string): Promise<{
   }
 }
 
+// Update an email template
+export async function updateEmailTemplate(
+  templateId: string,
+  updates: {
+    subject_template?: string;
+    html_template?: string;
+    text_template?: string;
+    name?: string;
+    category?: string;
+    active?: boolean;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('email_templates')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', templateId);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating email template:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update template' };
+  }
+}
+
 // ============================================
 // OPPORTUNITIES DATA
 // ============================================

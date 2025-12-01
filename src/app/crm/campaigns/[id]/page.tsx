@@ -1,10 +1,11 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Mail, Clock, Users, Play, Pause, Calendar, Send, CheckCircle, UserCheck, UserX, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Mail, Users, Play, Pause, CheckCircle, UserCheck, UserX } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getCampaignById, getCampaignEnrollments, getCampaignStats } from '../../actions';
+import { EmailSequenceCard } from '@/components/crm/EmailSequenceCard';
 
 export const metadata: Metadata = {
   title: 'Campaign Details | Quantum Solar CRM',
@@ -154,46 +155,12 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
                 {sequences
                   .sort((a: any, b: any) => (a.sequence_order || 0) - (b.sequence_order || 0))
                   .map((sequence: any, index: number) => (
-                    <div
+                    <EmailSequenceCard
                       key={sequence.id}
-                      className="border border-gray-700 rounded-lg p-4 hover:bg-gray-800/50 transition-colors"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                            <span className="text-blue-400 font-bold">{index + 1}</span>
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-white font-medium truncate">
-                              {sequence.subject || `Email ${index + 1}`}
-                            </h3>
-                            {sequence.active !== false && (
-                              <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
-                            )}
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-400">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              {sequence.delay_days || 0} days after{' '}
-                              {index === 0 ? 'enrollment' : 'previous email'}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Send className="h-4 w-4" />
-                              Sequence #{sequence.sequence_order || index + 1}
-                            </span>
-                          </div>
-                          {sequence.email_templates && (
-                            <div className="mt-2">
-                              <Badge variant="outline" className="text-xs text-gray-400 border-gray-600">
-                                Template: {sequence.email_templates.name || 'Custom'}
-                              </Badge>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                      sequence={sequence}
+                      index={index}
+                      totalSequences={sequences.length}
+                    />
                   ))}
               </div>
             )}
