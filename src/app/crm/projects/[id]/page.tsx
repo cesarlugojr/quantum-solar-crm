@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, MapPin, User, Calendar, Zap, DollarSign, Battery, Wrench, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, User, Calendar, Zap, DollarSign, Battery, Wrench, CheckCircle, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -274,12 +274,6 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                   </p>
                 </div>
               )}
-              {project.ahj_jurisdiction && (
-                <div>
-                  <p className="text-sm text-gray-400">AHJ Jurisdiction</p>
-                  <p className="text-white">{project.ahj_jurisdiction}</p>
-                </div>
-              )}
               {project.permit_number && (
                 <div>
                   <p className="text-sm text-gray-400">Permit Number</p>
@@ -288,6 +282,83 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               )}
             </div>
           </div>
+
+          {/* AHJ Information (if populated from joined data) */}
+          {project.ahj && (
+            <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+              <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-blue-400" />
+                Authority Having Jurisdiction
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-gray-400">Name</p>
+                  <p className="text-white font-medium">{project.ahj.name}</p>
+                </div>
+                {project.ahj.county && (
+                  <div>
+                    <p className="text-sm text-gray-400">Location</p>
+                    <p className="text-white">
+                      {project.ahj.county}, {project.ahj.state}
+                    </p>
+                  </div>
+                )}
+                {project.ahj.inspector_name && (
+                  <div>
+                    <p className="text-sm text-gray-400">Inspector</p>
+                    <p className="text-white">{project.ahj.inspector_name}</p>
+                    {project.ahj.inspector_phone && (
+                      <a
+                        href={`tel:${project.ahj.inspector_phone}`}
+                        className="text-sm text-blue-400 hover:underline"
+                      >
+                        {project.ahj.inspector_phone}
+                      </a>
+                    )}
+                  </div>
+                )}
+                {project.ahj.requires_tech_on_site && (
+                  <div className="bg-orange-500/10 border border-orange-500 rounded-lg p-3">
+                    <p className="text-sm text-orange-400 font-medium">
+                      ⚠️ Requires Tech On-Site
+                    </p>
+                  </div>
+                )}
+                {project.ahj.requires_rough_inspection && (
+                  <div className="bg-yellow-500/10 border border-yellow-500 rounded-lg p-3">
+                    <p className="text-sm text-yellow-400 font-medium">
+                      ⚠️ Requires Rough Inspection
+                    </p>
+                  </div>
+                )}
+                {project.ahj.typical_permit_turnaround_days && (
+                  <div>
+                    <p className="text-sm text-gray-400">Typical Permit Time</p>
+                    <p className="text-white">
+                      {project.ahj.typical_permit_turnaround_days} days
+                    </p>
+                  </div>
+                )}
+                {project.ahj.notes && (
+                  <div>
+                    <p className="text-sm text-gray-400">Notes</p>
+                    <p className="text-white text-sm">{project.ahj.notes}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Legacy AHJ Jurisdiction (text field only) */}
+          {!project.ahj && project.ahj_jurisdiction && (
+            <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+              <h3 className="font-semibold text-white mb-4">AHJ Information</h3>
+              <div>
+                <p className="text-sm text-gray-400">AHJ Jurisdiction (Legacy)</p>
+                <p className="text-white">{project.ahj_jurisdiction}</p>
+              </div>
+            </div>
+          )}
 
           {/* Project Notes */}
           {project.project_notes && (

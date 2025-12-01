@@ -16,6 +16,7 @@ import {
   Settings,
   Target,
   BarChart3,
+  ClipboardCheck,
 } from 'lucide-react';
 import { NotificationsDropdown } from '@/components/crm/NotificationsDropdown';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ const navigation = [
   { name: 'Leads', href: '/crm/leads', icon: Users },
   { name: 'Opportunities', href: '/crm/opportunities', icon: Target },
   { name: 'Projects', href: '/crm/projects', icon: Building2 },
+  { name: 'AHJ', href: '/crm/ahj', icon: ClipboardCheck },
   { name: 'Reports', href: '/crm/reports', icon: BarChart3 },
   { name: 'Campaigns', href: '/crm/campaigns', icon: Mail },
   { name: 'Candidates', href: '/crm/candidates', icon: Briefcase },

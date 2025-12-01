@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import {
   ArrowLeft, Mail, Phone, MapPin, Calendar, User, Home, Zap, DollarSign,
   CreditCard, Clock, FileText, Globe, Building, Sun, Briefcase,
-  MessageSquare, Target, CheckCircle, XCircle, TrendingUp, AlertCircle
+  MessageSquare, Target, CheckCircle, XCircle, TrendingUp, AlertCircle, Calculator
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -24,6 +24,17 @@ interface LeadDetailPageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+// Helper to determine lead source type
+function getLeadSourceInfo(lead: any): { type: 'calculator' | 'splash'; label: string; color: string; Icon: React.ElementType } {
+  const formType = lead.form_type || '';
+  const source = lead.source || '';
+
+  if (formType.includes('calculator') || source.includes('calculator')) {
+    return { type: 'calculator', label: 'Solar Calculator', color: 'text-purple-400 bg-purple-500/20 border-purple-500', Icon: Calculator };
+  }
+  return { type: 'splash', label: 'Splash Page', color: 'text-blue-400 bg-blue-500/20 border-blue-500', Icon: FileText };
 }
 
 // Helper to build Google Maps Static API URL for satellite view
@@ -106,6 +117,20 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
         </div>
         <div className="flex items-center gap-3">
           <EditLeadDialog lead={lead} />
+          {/* Source Badge */}
+          {(() => {
+            const sourceInfo = getLeadSourceInfo(lead);
+            const SourceIcon = sourceInfo.Icon;
+            return (
+              <Badge
+                variant="outline"
+                className={`${sourceInfo.color} text-lg px-4 py-2`}
+              >
+                <SourceIcon className="h-4 w-4 mr-2" />
+                {sourceInfo.label}
+              </Badge>
+            );
+          })()}
           <Badge
             variant="outline"
             className={`${getLeadStatusColor(lead.status)} bg-opacity-20 border-current text-lg px-4 py-2`}

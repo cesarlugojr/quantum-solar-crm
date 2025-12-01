@@ -11,6 +11,7 @@ import type {
   CandidateV2,
   Campaign,
   OpportunityV2,
+  AHJ,
 } from '@/types/crm';
 
 // Initialize Supabase client with service role key for server actions
@@ -485,15 +486,26 @@ export async function getProjectById(id: string): Promise<ProjectV2 | null> {
   try {
     const { data, error } = await supabase
       .from('projects')
-      .select('*')
+      .select(`
+        *,
+        ahj:ahj_id (*)
+      `)
       .eq('id', id)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error fetching project:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      throw error;
+    }
 
     return data;
   } catch (error) {
-    console.error('Error fetching project:', error);
+    console.error('Error fetching project:', error instanceof Error ? error.message : 'Unknown error', error);
     return null;
   }
 }
@@ -631,8 +643,8 @@ export async function getCampaignEnrollments(campaignId: string): Promise<Campai
       (data || []).map(async (enrollment: any) => {
         let leadName = 'Unknown';
 
-        // Handle both 'splash_lead' (correct) and 'splash_leads' (legacy)
-        if (enrollment.lead_type === 'splash_lead' || enrollment.lead_type === 'splash_leads') {
+        // Handle both singular (legacy) and plural (current) lead_type values
+        if (enrollment.lead_type === 'splash_leads' || enrollment.lead_type === 'splash_lead') {
           const { data: lead } = await supabase
             .from('splash_leads')
             .select('first_name, last_name, email')
@@ -642,7 +654,7 @@ export async function getCampaignEnrollments(campaignId: string): Promise<Campai
           if (lead) {
             leadName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || lead.email || 'Unknown';
           }
-        } else if (enrollment.lead_type === 'contact_submission') {
+        } else if (enrollment.lead_type === 'contact_submissions' || enrollment.lead_type === 'contact_submission') {
           const { data: contact } = await supabase
             .from('contact_submissions')
             .select('name, email')
@@ -1246,11 +1258,16 @@ export async function convertOpportunityToProject(opportunityId: string): Promis
 export async function enrollLeadInCampaign(
   leadId: string,
   campaignId: string,
-  leadType: 'splash_lead' | 'contact_submission' = 'splash_lead'
+  rawLeadType: 'splash_leads' | 'contact_submissions' | 'splash_lead' | 'contact_submission' = 'splash_leads'
 ): Promise<{ success: boolean; error?: string; enrollmentId?: string }> {
   try {
-    // Map lead_type to table name
-    const tableName = leadType === 'splash_lead' ? 'splash_leads' : 'contact_submissions';
+    // Normalize lead_type to plural form (matches table names)
+    const leadType = (rawLeadType === 'splash_lead' || rawLeadType === 'splash_leads')
+      ? 'splash_leads'
+      : 'contact_submissions';
+
+    // Table name matches the normalized lead_type
+    const tableName = leadType;
 
     // Fetch the lead to get email
     const { data: lead, error: leadError } = await supabase
@@ -1623,6 +1640,88 @@ export async function deleteProjects(ids: string[]): Promise<DeleteResult> {
   } catch (error) {
     console.error('Error deleting projects:', error);
     return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+// ============================================
+// AHJ (AUTHORITY HAVING JURISDICTION) DATA
+// ============================================
+
+export async function getAHJs(options?: {
+  state?: string;
+  county?: string;
+  activeOnly?: boolean;
+}): Promise<AHJ[]> {
+  try {
+    let query = supabase
+      .from('ahj')
+      .select('*')
+      .order('state', { ascending: true })
+      .order('name', { ascending: true });
+
+    if (options?.state) {
+      query = query.eq('state', options.state.toUpperCase());
+    }
+
+    if (options?.county) {
+      query = query.eq('county', options.county);
+    }
+
+    if (options?.activeOnly) {
+      query = query.eq('active', true);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Supabase error fetching AHJs:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching AHJs:', error instanceof Error ? error.message : 'Unknown error', error);
+    return [];
+  }
+}
+
+export async function getAHJById(id: string): Promise<AHJ | null> {
+  try {
+    const { data, error } = await supabase
+      .from('ahj')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching AHJ:', error);
+    return null;
+  }
+}
+
+export async function getAHJsByState(state: string): Promise<AHJ[]> {
+  try {
+    const { data, error } = await supabase
+      .from('ahj')
+      .select('*')
+      .eq('state', state.toUpperCase())
+      .eq('active', true)
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching AHJs by state:', error);
+    return [];
   }
 }
 

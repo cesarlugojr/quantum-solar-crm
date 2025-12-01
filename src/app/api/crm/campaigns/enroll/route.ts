@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { lead_id, campaign_id, lead_type = 'splash_lead' } = body;
+    const { lead_id, campaign_id, lead_type: rawLeadType = 'splash_leads' } = body;
 
     if (!lead_id || !campaign_id) {
       return NextResponse.json(
@@ -33,8 +33,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Map lead_type to table name
-    const tableName = lead_type === 'splash_lead' ? 'splash_leads' : 'contact_submissions';
+    // Normalize lead_type to plural form (table name)
+    const lead_type = (rawLeadType === 'splash_lead' || rawLeadType === 'splash_leads')
+      ? 'splash_leads'
+      : 'contact_submissions';
+
+    // Table name matches the normalized lead_type
+    const tableName = lead_type;
 
     // Fetch the lead to get email
     const { data: lead, error: leadError } = await supabase

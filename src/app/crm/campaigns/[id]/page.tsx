@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   title: 'Campaign Details | Quantum Solar CRM',
 };
 
+// Force dynamic rendering to prevent stale enrollment data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface CampaignDetailPageProps {
   params: Promise<{
     id: string;

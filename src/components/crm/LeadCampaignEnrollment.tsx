@@ -62,7 +62,7 @@ export function LeadCampaignEnrollment({ leadId, leadEmail }: LeadCampaignEnroll
     setSuccess(null);
 
     startTransition(async () => {
-      const result = await enrollLeadInCampaign(leadId, selectedCampaign, 'splash_lead');
+      const result = await enrollLeadInCampaign(leadId, selectedCampaign, 'splash_leads');
 
       if (result.success) {
         setSuccess('Lead enrolled in campaign successfully!');

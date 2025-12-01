@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Phone, Mail, Trash2 } from 'lucide-react';
+import { Phone, Mail, Calculator, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -21,6 +21,17 @@ import { DeleteConfirmationDialog } from './DeleteConfirmationDialog';
 
 interface LeadsTableProps {
   leads: LeadV2[];
+}
+
+// Helper to determine lead source type
+function getLeadSourceInfo(lead: LeadV2): { type: 'calculator' | 'splash'; label: string; color: string } {
+  const formType = (lead as any).form_type || '';
+  const source = (lead as any).source || '';
+
+  if (formType.includes('calculator') || source.includes('calculator')) {
+    return { type: 'calculator', label: 'Calculator', color: 'text-purple-400 bg-purple-500/20 border-purple-500' };
+  }
+  return { type: 'splash', label: 'Splash', color: 'text-blue-400 bg-blue-500/20 border-blue-500' };
 }
 
 export function LeadsTable({ leads }: LeadsTableProps) {
@@ -107,6 +118,7 @@ export function LeadsTable({ leads }: LeadsTableProps) {
                   />
                 </TableHead>
                 <TableHead className="text-gray-400">Name</TableHead>
+                <TableHead className="text-gray-400">Source</TableHead>
                 <TableHead className="text-gray-400">Contact</TableHead>
                 <TableHead className="text-gray-400">Street Address</TableHead>
                 <TableHead className="text-gray-400">City</TableHead>
@@ -135,6 +147,24 @@ export function LeadsTable({ leads }: LeadsTableProps) {
                   </TableCell>
                   <TableCell>
                     <p className="font-medium text-white">{lead.name || `${lead.first_name} ${lead.last_name}`}</p>
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const sourceInfo = getLeadSourceInfo(lead);
+                      return (
+                        <Badge
+                          variant="outline"
+                          className={`${sourceInfo.color} text-xs`}
+                        >
+                          {sourceInfo.type === 'calculator' ? (
+                            <Calculator className="h-3 w-3 mr-1" />
+                          ) : (
+                            <FileText className="h-3 w-3 mr-1" />
+                          )}
+                          {sourceInfo.label}
+                        </Badge>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">

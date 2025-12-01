@@ -53,9 +53,11 @@ async function fetchLeadData(leadType: string, leadId: string): Promise<LeadData
   let tableName = '';
 
   switch (leadType) {
+    case 'splash_lead':
     case 'splash_leads':
       tableName = 'splash_leads';
       break;
+    case 'contact_submission':
     case 'contact_submissions':
       tableName = 'contact_submissions';
       break;
@@ -83,13 +85,42 @@ async function fetchLeadData(leadType: string, leadId: string): Promise<LeadData
 
 /**
  * Substitute template variables with actual lead data
+ * Maps camelCase template variables to snake_case database columns
  */
 function substituteVariables(template: string, leadData: LeadData, variables: string[]): string {
   let result = template;
 
-  // Substitute each variable
+  // Comprehensive mapping from camelCase (template variables) to snake_case (database columns)
+  const variableMapping: Record<string, keyof LeadData | string> = {
+    'firstName': 'first_name',
+    'lastName': 'last_name',
+    'email': 'email',
+    'phone': 'phone',
+    'city': 'city',
+    'state': 'state',
+    'zipCode': 'zip_code',
+    'utilityCompany': 'utility_company',
+    'electricBill': 'average_monthly_bill',
+    'averageMonthlyBill': 'average_monthly_bill',
+    'estimatedSavings': 'estimated_savings',
+    'homeownerStatus': 'homeowner_status',
+    'creditScore': 'credit_score',
+    // Keep snake_case as-is for backward compatibility
+    'first_name': 'first_name',
+    'last_name': 'last_name',
+    'zip_code': 'zip_code',
+    'utility_company': 'utility_company',
+    'average_monthly_bill': 'average_monthly_bill',
+    'estimated_savings': 'estimated_savings',
+    'homeowner_status': 'homeowner_status',
+    'credit_score': 'credit_score',
+  };
+
+  // Substitute each variable from the template_variables array
   variables.forEach(variable => {
-    const value = leadData[variable];
+    // Map camelCase to snake_case, or use the variable as-is if no mapping exists
+    const dbColumn = variableMapping[variable] || variable;
+    const value = leadData[dbColumn as keyof LeadData];
     const displayValue = value !== undefined && value !== null ? String(value) : '';
 
     // Replace all occurrences of {{variable}}
@@ -97,18 +128,14 @@ function substituteVariables(template: string, leadData: LeadData, variables: st
     result = result.replace(regex, displayValue);
   });
 
-  // Also handle common variations
-  const commonMappings: Record<string, string> = {
-    'firstName': leadData.first_name || '',
-    'lastName': leadData.last_name || '',
-    'electricBill': String(leadData.average_monthly_bill || ''),
-    'estimatedSavings': String(leadData.estimated_savings || ''),
-    'utilityCompany': leadData.utility_company || '',
-  };
+  // Also handle any remaining unmapped variables in the template
+  // This catches cases where variables are used but not listed in template_variables array
+  Object.entries(variableMapping).forEach(([camelCase, snakeCase]) => {
+    const value = leadData[snakeCase as keyof LeadData];
+    const displayValue = value !== undefined && value !== null ? String(value) : '';
 
-  Object.entries(commonMappings).forEach(([key, value]) => {
-    const regex = new RegExp(`{{${key}}}`, 'g');
-    result = result.replace(regex, value);
+    const regex = new RegExp(`{{${camelCase}}}`, 'g');
+    result = result.replace(regex, displayValue);
   });
 
   return result;

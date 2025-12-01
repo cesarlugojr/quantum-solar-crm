@@ -380,6 +380,53 @@ export interface MilestonePayment {
   paid_date?: string;
 }
 
+// ============================================
+// AHJ (AUTHORITY HAVING JURISDICTION) TYPES
+// ============================================
+
+export interface AHJ {
+  id: string;
+
+  // Basic AHJ Information
+  name: string;
+  state: string;
+  county?: string;
+  city?: string;
+
+  // Contact Information
+  building_department_number?: string;
+  building_department_phone?: string;
+  building_department_email?: string;
+  building_department_website?: string;
+
+  // Inspector Information
+  inspector_name?: string;
+  inspector_number?: string;
+  inspector_phone?: string;
+  inspector_email?: string;
+
+  // Requirements & Policies
+  requires_tech_on_site: boolean;
+  requires_rough_inspection: boolean;
+  requires_final_inspection: boolean;
+  requires_electrical_inspection: boolean;
+
+  // Permitting Details
+  typical_permit_turnaround_days?: number;
+  typical_inspection_turnaround_days?: number;
+  permit_application_url?: string;
+  online_permitting_available: boolean;
+
+  // Special Requirements & Notes
+  special_requirements?: string;
+  notes?: string;
+
+  // Metadata
+  active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
 export interface ProjectV2 {
   id: string;
   lead_id?: string;
@@ -425,7 +472,9 @@ export interface ProjectV2 {
   adders?: Array<{ type: string; cost?: number; notes?: string }>;
 
   // Permitting and compliance
-  ahj_jurisdiction?: string;
+  ahj_id?: string; // Foreign key to AHJ table
+  ahj_jurisdiction?: string; // Legacy text field (kept for backward compatibility)
+  ahj?: AHJ; // Populated AHJ object when joined
   permit_number?: string;
   utility_account_number?: string;
 

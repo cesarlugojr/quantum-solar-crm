@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,8 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { updateProject } from '@/app/crm/actions';
-import type { ProjectV2 } from '@/types/crm';
+import { updateProject, getAHJs } from '@/app/crm/actions';
+import type { ProjectV2, AHJ } from '@/types/crm';
 import {
   PROJECT_STAGE_LABELS,
   REVENUE_TYPE_INFO,
@@ -43,6 +43,10 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // AHJ list
+  const [ahjs, setAhjs] = useState<AHJ[]>([]);
+  const [loadingAhjs, setLoadingAhjs] = useState(false);
 
   // Form state
   const [customerName, setCustomerName] = useState(project.customer_name || '');
@@ -64,6 +68,7 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
   const [hasMpu, setHasMpu] = useState(project.has_mpu || false);
   const [hasBattery, setHasBattery] = useState(project.has_battery || false);
   const [hasTrench, setHasTrench] = useState(project.has_trench || false);
+  const [ahjId, setAhjId] = useState(project.ahj_id || '');
   const [ahjJurisdiction, setAhjJurisdiction] = useState(project.ahj_jurisdiction || '');
   const [permitNumber, setPermitNumber] = useState(project.permit_number || '');
   const [utilityAccountNumber, setUtilityAccountNumber] = useState(project.utility_account_number || '');
@@ -75,6 +80,17 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
     project.pto_date ? project.pto_date.slice(0, 10) : ''
   );
   const [projectNotes, setProjectNotes] = useState(project.project_notes || '');
+
+  // Load AHJs when dialog opens
+  useEffect(() => {
+    if (open) {
+      setLoadingAhjs(true);
+      getAHJs({ activeOnly: true }).then((data) => {
+        setAhjs(data);
+        setLoadingAhjs(false);
+      });
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,6 +117,7 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
         has_mpu: hasMpu,
         has_battery: hasBattery,
         has_trench: hasTrench,
+        ahj_id: ahjId || undefined,
         ahj_jurisdiction: ahjJurisdiction || undefined,
         permit_number: permitNumber || undefined,
         utility_account_number: utilityAccountNumber || undefined,
@@ -374,13 +391,20 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
               <h3 className="font-semibold text-gray-300 border-b border-gray-700 pb-2">Permitting & Compliance</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="ahjJurisdiction" className="text-gray-300">AHJ Jurisdiction</Label>
-                  <Input
-                    id="ahjJurisdiction"
-                    value={ahjJurisdiction}
-                    onChange={(e) => setAhjJurisdiction(e.target.value)}
-                    className="bg-gray-800 border-gray-600 text-white"
-                  />
+                  <Label htmlFor="ahjId" className="text-gray-300">AHJ (Authority Having Jurisdiction)</Label>
+                  <Select value={ahjId || 'none'} onValueChange={(value) => setAhjId(value === 'none' ? '' : value)}>
+                    <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                      <SelectValue placeholder={loadingAhjs ? "Loading AHJs..." : "Select AHJ..."} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {ahjs.map((ahj) => (
+                        <SelectItem key={ahj.id} value={ahj.id}>
+                          {ahj.name} ({ahj.state})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="permitNumber" className="text-gray-300">Permit Number</Label>
