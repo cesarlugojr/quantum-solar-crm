@@ -61,6 +61,9 @@ async function fetchLeadData(leadType: string, leadId: string): Promise<LeadData
     case 'contact_submissions':
       tableName = 'contact_submissions';
       break;
+    case 'solar_calculator_data':
+      tableName = 'solar_calculator_data';
+      break;
     case 'leads':
       tableName = 'contact_submissions'; // Alias
       break;
@@ -184,10 +187,10 @@ async function recordEmailSend(
     .insert({
       enrollment_id: enrollmentId,
       sequence_id: sequenceId,
-      sent_to: to,
+      email_address: to,
       subject,
       status,
-      resend_id: resendId,
+      resend_message_id: resendId,
       error_message: errorMessage,
       sent_at: status === 'sent' ? new Date().toISOString() : null,
     });
