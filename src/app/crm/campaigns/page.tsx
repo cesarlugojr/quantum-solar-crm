@@ -1,7 +1,6 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Metadata } from 'next';
+import { Suspense } from 'react';
+import { Plus, Mail, Clock, Users, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,183 +11,158 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Switch } from '@/components/ui/switch';
+import Link from 'next/link';
+import { getCampaigns } from '../actions';
 
-interface Campaign {
-  id: string;
-  name: string;
-  description: string;
-  trigger_type: string;
-  active: boolean;
-  created_at: string;
-  sequences?: unknown[];
-  stats?: {
-    totalEnrollments: number;
-    activeEnrollments: number;
+export const metadata: Metadata = {
+  title: 'Campaigns | Quantum Solar CRM',
+  description: 'Manage email drip campaigns and automation',
+};
+
+function getTriggerLabel(trigger: string): string {
+  const labels: Record<string, string> = {
+    'lead_created': 'New Lead',
+    'status_change': 'Status Change',
+    'manual': 'Manual',
+    'time_based': 'Scheduled',
   };
+  return labels[trigger] || trigger;
 }
 
-export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+async function CampaignsTable() {
+  const campaigns = await getCampaigns();
 
-  useEffect(() => {
-    fetchCampaigns();
-  }, []);
-
-  const fetchCampaigns = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/crm/campaigns');
-      const data = await response.json();
-
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setCampaigns(data.campaigns || []);
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleCampaignActive = async (campaignId: string, currentActive: boolean) => {
-    try {
-      const response = await fetch('/api/crm/campaigns', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: campaignId,
-          active: !currentActive
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.error) {
-        alert('Error updating campaign: ' + data.error);
-      } else {
-        // Update local state
-        setCampaigns(campaigns.map(c =>
-          c.id === campaignId ? { ...c, active: !currentActive } : c
-        ));
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      alert('Error: ' + message);
-    }
-  };
-
-  if (loading) {
+  if (!campaigns || campaigns.length === 0) {
     return (
-      <div className="p-8">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-gray-500">Loading campaigns...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">Error loading campaigns: {error}</p>
-        </div>
+      <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-12 text-center">
+        <h3 className="text-lg font-semibold text-white mb-2">No Campaigns Found</h3>
+        <p className="text-gray-400 mb-4">
+          Create your first email drip campaign to automate lead nurturing.
+        </p>
+        <Button className="bg-[#ff0000] hover:bg-[#cc0000] text-white">
+          <Plus className="h-4 w-4 mr-2" />
+          Create Campaign
+        </Button>
       </div>
     );
   }
 
   return (
+    <div className="bg-gray-900/50 border border-gray-700 rounded-lg overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-gray-700 hover:bg-gray-800/50">
+            <TableHead className="text-gray-400">Campaign Name</TableHead>
+            <TableHead className="text-gray-400">Trigger</TableHead>
+            <TableHead className="text-gray-400">Emails</TableHead>
+            <TableHead className="text-gray-400">Status</TableHead>
+            <TableHead className="text-gray-400">Created</TableHead>
+            <TableHead className="text-gray-400 text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {campaigns.map((campaign) => (
+            <TableRow
+              key={campaign.id}
+              className="border-gray-700 hover:bg-gray-800/50"
+            >
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                    <Mail className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">{campaign.name}</p>
+                    {campaign.description && (
+                      <p className="text-sm text-gray-500 truncate max-w-[200px]">
+                        {campaign.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell className="text-gray-300">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-3 w-3 text-gray-500" />
+                  {getTriggerLabel(campaign.trigger_type)}
+                </div>
+              </TableCell>
+              <TableCell className="text-gray-300">
+                <div className="flex items-center gap-2">
+                  <Users className="h-3 w-3 text-gray-500" />
+                  {campaign.sequences?.length || 0} emails
+                </div>
+              </TableCell>
+              <TableCell>
+                {campaign.active ? (
+                  <Badge
+                    variant="outline"
+                    className="text-green-400 border-green-500 bg-green-500/10"
+                  >
+                    <Play className="h-3 w-3 mr-1" />
+                    Active
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="text-gray-400 border-gray-500 bg-gray-500/10"
+                  >
+                    <Pause className="h-3 w-3 mr-1" />
+                    Paused
+                  </Badge>
+                )}
+              </TableCell>
+              <TableCell className="text-gray-400 text-sm">
+                {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                }) : '-'}
+              </TableCell>
+              <TableCell className="text-right">
+                <Link href={`/crm/campaigns/${campaign.id}`}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-white"
+                  >
+                    Edit
+                  </Button>
+                </Link>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+export default function CampaignsPage() {
+  return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Email Campaigns</h1>
-          <p className="text-gray-400 mt-2">Manage automated email drip campaigns</p>
+          <p className="text-gray-400 mt-1">
+            Manage automated email drip campaigns
+          </p>
         </div>
-        <Button asChild className="bg-[#ff0000] hover:bg-[#cc0000] text-white">
-          <Link href="/crm/campaigns/new">Create Campaign</Link>
+        <Button className="bg-[#ff0000] hover:bg-[#cc0000] text-white">
+          <Plus className="h-4 w-4 mr-2" />
+          Create Campaign
         </Button>
       </div>
 
-      {campaigns.length === 0 ? (
-        <div className="bg-gray-900 border border-gray-700 rounded-lg p-12 text-center">
-          <p className="text-gray-400 mb-4">No campaigns created yet</p>
-          <Button asChild className="bg-[#ff0000] hover:bg-[#cc0000] text-white">
-            <Link href="/crm/campaigns/new">Create Your First Campaign</Link>
-          </Button>
+      {/* Campaigns Data Table */}
+      <Suspense fallback={
+        <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-12">
+          <p className="text-center text-gray-400">Loading campaigns...</p>
         </div>
-      ) : (
-        <div className="bg-gray-900 border border-gray-700 rounded-lg shadow-xl">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-gray-700 hover:bg-gray-800/50">
-                <TableHead className="text-gray-300">Campaign Name</TableHead>
-                <TableHead className="text-gray-300">Trigger Type</TableHead>
-                <TableHead className="text-gray-300">Emails</TableHead>
-                <TableHead className="text-gray-300">Enrollments</TableHead>
-                <TableHead className="text-gray-300">Status</TableHead>
-                <TableHead className="text-gray-300">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {campaigns.map((campaign) => (
-                <TableRow key={campaign.id} className="border-gray-700 hover:bg-gray-800/30">
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-white">{campaign.name}</p>
-                      <p className="text-sm text-gray-400">{campaign.description}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="border-gray-600 text-gray-300">
-                      {campaign.trigger_type.replace('_', ' ')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-300">
-                    {campaign.sequences?.length || 0} emails
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <p className="font-medium text-white">{campaign.stats?.totalEnrollments || 0} total</p>
-                      <p className="text-gray-400">{campaign.stats?.activeEnrollments || 0} active</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={campaign.active}
-                        onCheckedChange={() => toggleCampaignActive(campaign.id, campaign.active)}
-                      />
-                      <span className="text-sm text-gray-300">
-                        {campaign.active ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button asChild variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
-                        <Link href={`/crm/campaigns/${campaign.id}`}>
-                          Edit
-                        </Link>
-                      </Button>
-                      <Button asChild variant="ghost" size="sm" className="text-gray-300 hover:bg-gray-800">
-                        <Link href={`/crm/campaigns/${campaign.id}/analytics`}>
-                          Analytics
-                        </Link>
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      }>
+        <CampaignsTable />
+      </Suspense>
     </div>
   );
 }

@@ -13,10 +13,10 @@ import {
 } from '@/components/ui/table';
 import Link from 'next/link';
 import { getOpportunities } from '../actions';
-import { formatCurrency, OPPORTUNITY_STATUS_LABELS } from '@/types/crmv2';
+import { formatCurrency, OPPORTUNITY_STATUS_LABELS } from '@/types/crm';
 
 export const metadata: Metadata = {
-  title: 'Opportunities | Quantum Solar CRM v2',
+  title: 'Opportunities | Quantum Solar CRM',
   description: 'Manage solar opportunities and scheduled appointments',
 };
 
@@ -126,7 +126,7 @@ async function OpportunitiesTable() {
                 )}
               </TableCell>
               <TableCell className="text-right">
-                <Link href={`/crmv2/opportunities/${opportunity.id}`}>
+                <Link href={`/crm/opportunities/${opportunity.id}`}>
                   <Button
                     variant="ghost"
                     size="sm"

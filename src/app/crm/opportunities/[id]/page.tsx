@@ -22,10 +22,10 @@ import {
   OPPORTUNITY_STATUS_LABELS,
   OPPORTUNITY_LOST_REASON_LABELS,
   OpportunityLostReason,
-} from '@/types/crmv2';
+} from '@/types/crm';
 
 export const metadata: Metadata = {
-  title: 'Opportunity Details | Quantum Solar CRM v2',
+  title: 'Opportunity Details | Quantum Solar CRM',
   description: 'View and manage opportunity details',
 };
 
@@ -56,7 +56,7 @@ export default async function OpportunityDetailPage({
     <div className="space-y-6">
       {/* Back Button & Header */}
       <div className="flex items-center gap-4">
-        <Link href="/crmv2/opportunities">
+        <Link href="/crm/opportunities">
           <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Opportunities
@@ -276,7 +276,7 @@ export default async function OpportunityDetailPage({
             <div>
               <p className="text-gray-400">Source Lead</p>
               <Link
-                href={`/crmv2/leads/${opportunity.lead_id}`}
+                href={`/crm/leads/${opportunity.lead_id}`}
                 className="text-blue-400 hover:underline"
               >
                 View Lead
@@ -287,7 +287,7 @@ export default async function OpportunityDetailPage({
             <div>
               <p className="text-gray-400">Converted Project</p>
               <Link
-                href={`/crmv2/projects/${opportunity.project_id}`}
+                href={`/crm/projects/${opportunity.project_id}`}
                 className="text-green-400 hover:underline"
               >
                 View Project

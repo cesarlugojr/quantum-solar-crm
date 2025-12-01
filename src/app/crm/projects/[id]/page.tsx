@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
-  title: 'Project Details | Quantum Solar CRM v2',
+  title: 'Project Details | Quantum Solar CRM',
 };
 
 interface ProjectDetailPageProps {
@@ -20,7 +20,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   return (
     <div className="space-y-6">
       {/* Back Button */}
-      <Link href="/crmv2/projects">
+      <Link href="/crm/projects">
         <Button variant="ghost" className="text-gray-400 hover:text-white">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Projects

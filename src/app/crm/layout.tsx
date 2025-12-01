@@ -1,255 +1,225 @@
-/**
- * CRM Layout
- * 
- * Dedicated layout for the CRM application with its own navigation,
- * user profile controls, and settings. Completely separate from
- * the main website navigation.
- */
+'use client';
 
-"use client";
-
-import { useUser, SignOutButton } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { NotificationsDropdown } from '@/components/crm/NotificationsDropdown';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useUser, UserButton } from '@clerk/nextjs';
 import {
-  Bell,
-  Settings,
-  User,
-  LogOut,
   Home,
   Users,
   Building2,
   Briefcase,
-  BarChart3,
-  MessageSquare,
-  Calendar,
-  FileText,
+  Mail,
   Menu,
   X,
-  Mail
+  Settings,
+  Bell,
+  Target,
+  BarChart3,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-interface CRMLayoutProps {
+const navigation = [
+  { name: 'Dashboard', href: '/crm', icon: Home },
+  { name: 'Leads', href: '/crm/leads', icon: Users },
+  { name: 'Opportunities', href: '/crm/opportunities', icon: Target },
+  { name: 'Projects', href: '/crm/projects', icon: Building2 },
+  { name: 'Reports', href: '/crm/reports', icon: BarChart3 },
+  { name: 'Campaigns', href: '/crm/campaigns', icon: Mail },
+  { name: 'Candidates', href: '/crm/candidates', icon: Briefcase },
+];
+
+export default function CRMLayout({
+  children,
+}: {
   children: React.ReactNode;
-}
-
-export default function CRMLayout({ children }: CRMLayoutProps) {
-  const { user, isLoaded } = useUser();
-  const router = useRouter();
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const { user, isLoaded } = useUser();
 
-  // Show loading while auth is being checked
+  // Show loading state while Clerk loads
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white text-lg">Loading CRM...</p>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#ff0000] border-r-transparent"></div>
+          <p className="mt-4 text-gray-400">Loading CRM...</p>
         </div>
       </div>
     );
   }
 
-  // Redirect to sign-in if not authenticated
-  if (isLoaded && !user) {
-    router.push('/sign-in');
+  // Redirect if not authenticated (handled by middleware, but extra safety)
+  if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white text-lg">Redirecting to sign-in...</p>
+          <p className="text-gray-400">Not authenticated. Redirecting...</p>
         </div>
       </div>
     );
   }
-
-  // Role-based access control
-  const getUserRole = () => {
-    if (!user) return 'guest';
-    const email = user.emailAddresses[0]?.emailAddress || '';
-    if (email.includes('admin') || email === 'cesar@quantumsolar.us') return 'admin';
-    if (email.includes('manager')) return 'manager';
-    if (email.includes('sales')) return 'sales';
-    if (email.includes('installer')) return 'installer';
-    return 'user';
-  };
-
-  const userRole = getUserRole();
-
-  const navigation = [
-    { name: 'Dashboard', href: '/crm', icon: Home },
-    { name: 'Leads', href: '/crm/leads', icon: Users },
-    { name: 'Projects', href: '/crm/projects', icon: Building2 },
-    { name: 'Candidates', href: '/crm/candidates', icon: Briefcase },
-    { name: 'Campaigns', href: '/crm/campaigns', icon: Mail },
-    { name: 'Analytics', href: '/crm/analytics', icon: BarChart3 },
-    { name: 'Messages', href: '/crm/messages', icon: MessageSquare },
-    { name: 'Calendar', href: '/crm/calendar', icon: Calendar },
-    { name: 'Notifications', href: '/crm/notifications', icon: Bell },
-    { name: 'Reports', href: '/crm/reports', icon: FileText },
-  ];
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Top Navigation Bar */}
-      <nav className="fixed top-0 z-50 w-full bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
-        <div className="px-3 py-3 lg:px-5 lg:pl-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center justify-start">
-              {/* Mobile menu button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden text-gray-400 hover:text-white"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-              >
-                {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </Button>
-              
-              {/* Logo */}
-              <div className="flex ml-2 md:mr-24">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-[#ff0000] to-[#cc0000] rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">QS</span>
-                  </div>
-                  <span className="self-center text-xl font-semibold text-white">
-                    Quantum Solar CRM
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              {/* Role Badge */}
-              <Badge variant="outline" className="border-gray-600 text-gray-300 hidden md:flex">
-                {userRole.toUpperCase()}
-              </Badge>
-
-              {/* Notifications */}
-              <NotificationsDropdown />
-
-              {/* User Menu */}
-              <div className="relative">
-                <Button 
-                  variant="ghost" 
-                  className="relative h-8 w-8 rounded-full"
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                >
-                  <div className="w-8 h-8 bg-gradient-to-br from-[#ff0000] to-[#cc0000] rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
-                    </span>
-                  </div>
-                </Button>
-              </div>
-
-              {/* Settings Button */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-gray-400 hover:text-white"
-                onClick={() => router.push('/crm/settings')}
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
-
-              {/* Profile Button */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-gray-400 hover:text-white"
-                onClick={() => router.push('/crm/profile')}
-              >
-                <User className="h-5 w-5" />
-              </Button>
-
-              {/* Sign Out Button */}
-              <SignOutButton>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-red-400 hover:text-red-300"
-                >
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </SignOutButton>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-40 w-64 h-screen pt-20 transition-transform ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } bg-gray-900 border-r border-gray-800 lg:translate-x-0`}
+        className={cn(
+          'fixed left-0 top-0 z-50 h-full w-64 bg-gray-900 border-r border-gray-700 transition-transform duration-200 ease-in-out',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          'lg:translate-x-0'
+        )}
       >
-        <div className="h-full px-3 pb-4 overflow-y-auto flex flex-col">
+        <div className="flex h-full flex-col">
           {/* Sidebar Header */}
-          <div className="mb-6 pb-4 border-b border-gray-800">
-            <h2 className="text-white font-bold text-lg">QUANTUM SOLAR</h2>
-            <p className="text-gray-400 text-sm">CRM Platform</p>
+          <div className="flex h-16 items-center justify-between border-b border-gray-700 px-6">
+            <Link href="/crm" className="flex items-center space-x-2">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#ff0000] to-[#cc0000] flex items-center justify-center">
+                <span className="text-white font-bold text-lg">Q</span>
+              </div>
+              <div>
+                <p className="text-white font-semibold text-sm">Quantum Solar</p>
+                <p className="text-gray-400 text-xs">CRM</p>
+              </div>
+            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden text-gray-400 hover:text-white"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
 
           {/* Navigation */}
-          <ul className="space-y-2 font-medium flex-1">
+          <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
             {navigation.map((item) => {
-              const isActive = false; // You can implement active state logic here
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
-                <li key={item.name}>
-                  <Button
-                    variant="ghost"
-                    className={`w-full justify-start text-left h-10 px-3 ${
-                      isActive
-                        ? 'bg-[#ff0000] text-white'
-                        : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                    }`}
-                    onClick={() => {
-                      router.push(item.href);
-                      setSidebarOpen(false);
-                    }}
-                  >
-                    <item.icon className="h-5 w-5 mr-3" />
-                    {item.name}
-                  </Button>
-                </li>
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn(
+                    'flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-[#ff0000] text-white'
+                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  )}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.name}</span>
+                </Link>
               );
             })}
-          </ul>
+          </nav>
 
-          {/* Sidebar Footer */}
-          <div className="pt-4 mt-4 border-t border-gray-800">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#ff0000] to-[#cc0000] rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </span>
-              </div>
-              <div className="flex-1">
-                <p className="text-white text-sm font-medium">Team Member</p>
-                <p className="text-gray-400 text-xs">CRM Access</p>
-              </div>
+          {/* Sidebar Footer - Status Badge */}
+          <div className="border-t border-gray-700 p-4">
+            <div className="flex items-center space-x-2">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+              <span className="text-xs text-gray-400">All systems operational</span>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Main Content Area */}
+      <div className="lg:ml-64">
+        {/* Top Bar */}
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-700 bg-gray-900 px-6">
+          {/* Mobile Menu Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden text-gray-400 hover:text-white"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
 
-      {/* Main content */}
-      <div className="p-8 lg:ml-64 pt-28 pb-8">
-        <div className="rounded-lg max-w-7xl">
-          {children}
-        </div>
+          {/* Breadcrumb / Page Title - Hidden on mobile */}
+          <div className="hidden lg:block">
+            <div className="flex items-center space-x-2 text-sm">
+              <Link href="/crm" className="text-gray-400 hover:text-white transition-colors">
+                CRM
+              </Link>
+              {pathname !== '/crm' && (
+                <>
+                  <span className="text-gray-600">/</span>
+                  <span className="text-white font-medium">
+                    {pathname.split('/').filter(Boolean).slice(1).join(' / ')}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Right Side - User Menu */}
+          <div className="flex items-center space-x-4">
+            {/* Notifications */}
+            <Button variant="ghost" size="sm" className="relative text-gray-400 hover:text-white">
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#ff0000]"></span>
+            </Button>
+
+            {/* Settings */}
+            <Link href="/crm/settings">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Settings className="h-5 w-5" />
+              </Button>
+            </Link>
+
+            {/* User Button from Clerk */}
+            <div className="flex items-center space-x-3">
+              <div className="hidden md:block text-right">
+                <p className="text-sm font-medium text-white">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {user.emailAddresses[0]?.emailAddress}
+                </p>
+              </div>
+              <UserButton
+                afterSignOutUrl="/sign-in"
+                appearance={{
+                  elements: {
+                    avatarBox: 'h-10 w-10',
+                  },
+                }}
+              />
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl">
+            {children}
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-gray-700 bg-gray-900 px-6 py-4">
+          <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between text-sm text-gray-400">
+            <p>&copy; 2025 Quantum Solar Enterprises LLC. All rights reserved.</p>
+            <div className="flex items-center space-x-2 mt-2 md:mt-0">
+              <span className="h-2 w-2 rounded-full bg-green-500"></span>
+              <span>All systems operational</span>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

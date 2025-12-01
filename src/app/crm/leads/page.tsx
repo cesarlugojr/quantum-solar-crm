@@ -1,260 +1,160 @@
-"use client";
-
-import { useState, useEffect } from 'react';
+import { Metadata } from 'next';
+import { Suspense } from 'react';
+import { Plus, Phone, Mail, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Filter, Download, Eye, Edit, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import Link from 'next/link';
+import { getLeads } from '../actions';
+import { formatCurrency, getLeadStatusColor, LEAD_STATUS_LABELS } from '@/types/crm';
 
-interface Lead {
-  id: string;
-  custom_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  status: string;
-  utility_company: string;
-  created_at: string;
-  assigned_to: string;
+export const metadata: Metadata = {
+  title: 'Leads | Quantum Solar CRM',
+  description: 'Manage solar leads with enhanced filtering and data tables',
+};
+
+async function LeadsTable() {
+  const leads = await getLeads(100);
+
+  if (!leads || leads.length === 0) {
+    return (
+      <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-12 text-center">
+        <h3 className="text-lg font-semibold text-white mb-2">No Leads Found</h3>
+        <p className="text-gray-400 mb-4">
+          Leads will appear here when they come in from your website.
+        </p>
+        <Button className="bg-[#ff0000] hover:bg-[#cc0000] text-white">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Lead Manually
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-900/50 border border-gray-700 rounded-lg overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-gray-700 hover:bg-gray-800/50">
+            <TableHead className="text-gray-400">Name</TableHead>
+            <TableHead className="text-gray-400">Contact</TableHead>
+            <TableHead className="text-gray-400">Location</TableHead>
+            <TableHead className="text-gray-400">Electric Bill</TableHead>
+            <TableHead className="text-gray-400">Status</TableHead>
+            <TableHead className="text-gray-400">Created</TableHead>
+            <TableHead className="text-gray-400 text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {leads.map((lead) => (
+            <TableRow
+              key={lead.id}
+              className="border-gray-700 hover:bg-gray-800/50"
+            >
+              <TableCell>
+                <p className="font-medium text-white">{lead.name || `${lead.first_name} ${lead.last_name}`}</p>
+              </TableCell>
+              <TableCell>
+                <div className="space-y-1">
+                  {lead.email && (
+                    <div className="flex items-center gap-2 text-sm text-gray-300">
+                      <Mail className="h-3 w-3 text-gray-500" />
+                      {lead.email}
+                    </div>
+                  )}
+                  {lead.phone && (
+                    <div className="flex items-center gap-2 text-sm text-gray-300">
+                      <Phone className="h-3 w-3 text-gray-500" />
+                      {lead.phone}
+                    </div>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="text-gray-300">
+                {lead.location || lead.city ? (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-3 w-3 text-gray-500" />
+                    {lead.location || `${lead.city}, ${lead.state}`}
+                  </div>
+                ) : (
+                  <span className="text-gray-500">-</span>
+                )}
+              </TableCell>
+              <TableCell className="text-gray-300">
+                {lead.electric_bill ? (
+                  formatCurrency(lead.electric_bill)
+                ) : lead.average_monthly_bill ? (
+                  formatCurrency(lead.average_monthly_bill)
+                ) : (
+                  <span className="text-gray-500">-</span>
+                )}
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant="outline"
+                  className={`${getLeadStatusColor(lead.status)} bg-opacity-20 border-current`}
+                >
+                  {LEAD_STATUS_LABELS[lead.status as keyof typeof LEAD_STATUS_LABELS] || lead.status || 'new'}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-gray-400 text-sm">
+                {new Date(lead.created_at).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </TableCell>
+              <TableCell className="text-right">
+                <Link href={`/crm/leads/${lead.id}`}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-white"
+                  >
+                    View
+                  </Button>
+                </Link>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
 }
 
 export default function LeadsPage() {
-  const router = useRouter();
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-
-  useEffect(() => {
-    fetchLeads();
-  }, []);
-
-  const fetchLeads = async () => {
-    try {
-      const response = await fetch('/api/crm/leads');
-      if (response.ok) {
-        const data = await response.json();
-        setLeads(data);
-      }
-    } catch (error) {
-      console.error('Error fetching leads:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = searchTerm === '' ||
-      `${lead.first_name || ''} ${lead.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lead.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lead.custom_id || '').toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesFilter = filterStatus === 'all' || lead.status === filterStatus;
-
-    return matchesSearch && matchesFilter;
-  });
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'new':
-        return 'bg-blue-500';
-      case 'contacted':
-        return 'bg-yellow-500';
-      case 'qualified':
-        return 'bg-green-500';
-      case 'disqualified':
-        return 'bg-red-500';
-      case 'converted':
-        return 'bg-purple-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Leads</h1>
-          <p className="text-gray-400 mt-2">Manage and track your solar leads</p>
+          <p className="text-gray-400 mt-1">
+            Manage and track all solar leads
+          </p>
         </div>
-        <Button
-          onClick={() => router.push('/crm/leads/new')}
-          className="bg-[#ff0000] hover:bg-[#cc0000] text-white"
-        >
+        <Button className="bg-[#ff0000] hover:bg-[#cc0000] text-white">
           <Plus className="h-4 w-4 mr-2" />
-          Add Lead
+          Add New Lead
         </Button>
       </div>
 
-      {/* Filters and Search */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-gray-900 p-4 rounded-lg">
-        <div className="flex flex-1 items-center space-x-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search leads..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff0000]"
-            />
-          </div>
-
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#ff0000]"
-          >
-            <option value="all">All Statuses</option>
-            <option value="new">New</option>
-            <option value="contacted">Contacted</option>
-            <option value="qualified">Qualified</option>
-            <option value="disqualified">Disqualified</option>
-            <option value="converted">Converted</option>
-          </select>
+      {/* Leads Data Table */}
+      <Suspense fallback={
+        <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-12">
+          <p className="text-center text-gray-400">Loading leads...</p>
         </div>
-
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-gray-900 p-6 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-400">Total Leads</h3>
-          <p className="text-2xl font-bold text-white mt-2">{leads.length}</p>
-        </div>
-        <div className="bg-gray-900 p-6 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-400">New Leads</h3>
-          <p className="text-2xl font-bold text-blue-400 mt-2">
-            {leads.filter(l => l.status === 'new').length}
-          </p>
-        </div>
-        <div className="bg-gray-900 p-6 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-400">Qualified</h3>
-          <p className="text-2xl font-bold text-green-400 mt-2">
-            {leads.filter(l => l.status === 'qualified').length}
-          </p>
-        </div>
-        <div className="bg-gray-900 p-6 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-400">Converted</h3>
-          <p className="text-2xl font-bold text-purple-400 mt-2">
-            {leads.filter(l => l.status === 'converted').length}
-          </p>
-        </div>
-      </div>
-
-      {/* Leads Table */}
-      <div className="bg-gray-900 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-800">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Lead ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Utility
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Created
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-400">
-                    Loading leads...
-                  </td>
-                </tr>
-              ) : filteredLeads.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-400">
-                    No leads found
-                  </td>
-                </tr>
-              ) : (
-                filteredLeads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-gray-800">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-white">{lead.custom_id}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-white">
-                        {lead.first_name} {lead.last_name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300">{lead.email}</div>
-                      <div className="text-sm text-gray-400">{lead.phone}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300">{lead.utility_company}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge className={`${getStatusColor(lead.status)} text-white`}>
-                        {lead.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {new Date(lead.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => router.push(`/crm/leads/${lead.id}`)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => router.push(`/crm/leads/${lead.id}/edit`)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      }>
+        <LeadsTable />
+      </Suspense>
     </div>
   );
 }

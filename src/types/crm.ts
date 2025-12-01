@@ -1,5 +1,5 @@
-// CRM v2 Type Definitions
-// Enhanced types with solar-specific fields for the v2 CRM interface
+// CRM Type Definitions
+// Enhanced types with solar-specific fields for the CRM interface
 
 // ============================================
 // LEAD STATUS SYSTEM

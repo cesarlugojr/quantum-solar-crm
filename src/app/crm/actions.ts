@@ -11,7 +11,7 @@ import type {
   CandidateV2,
   Campaign,
   OpportunityV2,
-} from '@/types/crmv2';
+} from '@/types/crm';
 
 // Initialize Supabase client with service role key for server actions
 const supabase = createClient(

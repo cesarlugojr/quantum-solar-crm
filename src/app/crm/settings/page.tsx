@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { Settings as SettingsIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Settings | Quantum Solar CRM v2',
+  title: 'Settings | Quantum Solar CRM',
   description: 'Manage your CRM settings and preferences',
 };
 

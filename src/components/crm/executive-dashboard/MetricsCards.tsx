@@ -1,8 +1,8 @@
 'use client';
 
 import { TrendingUp, TrendingDown, Users, Building2, Target, DollarSign } from 'lucide-react';
-import type { DashboardMetrics } from '@/types/crmv2';
-import { formatCurrency, formatPercentage } from '@/types/crmv2';
+import type { DashboardMetrics } from '@/types/crm';
+import { formatCurrency, formatPercentage } from '@/types/crm';
 
 interface MetricsCardsProps {
   metrics: DashboardMetrics;
