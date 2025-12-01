@@ -25,10 +25,22 @@ const supabase = createClient(
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   try {
-    // Fetch total leads from splash_leads (the actual leads table with data)
-    const { count: totalLeads } = await supabase
+    // Fetch total valid leads (with email, phone, or address)
+    const { data: leadsData, error: leadsError } = await supabase
       .from('splash_leads')
-      .select('*', { count: 'exact', head: true });
+      .select('*');
+
+    if (leadsError) {
+      console.error('Error fetching leads for metrics:', leadsError);
+    }
+
+    // Count only leads with email, phone, or address (check all possible address fields)
+    const totalLeads = (leadsData || []).filter((lead: any) =>
+      (lead.email && String(lead.email).trim() !== '') ||
+      (lead.phone && String(lead.phone).trim() !== '') ||
+      (lead.address && String(lead.address).trim() !== '') ||
+      (lead.street_address && String(lead.street_address).trim() !== '')
+    ).length;
 
     // Fetch total projects
     const { count: totalProjects } = await supabase
@@ -339,29 +351,32 @@ export async function getCashFlowForecast(weeks: number = 13): Promise<CashFlowF
 // LEADS DATA
 // ============================================
 
-export async function getLeads(limit: number = 50, offset: number = 0): Promise<LeadV2[]> {
+export async function getLeads(limit: number = 500, offset: number = 0): Promise<LeadV2[]> {
   try {
-    // Query splash_leads - only those with email, phone, or address
+    // Fetch all leads (up to 1000) to ensure we get all valid ones after filtering
     const { data, error } = await supabase
       .from('splash_leads')
       .select('*')
-      .or('email.neq.,phone.neq.,address.neq.')
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .limit(1000);
 
     if (error) throw error;
 
-    // Filter out leads without contact info (double-check client side)
+    // Filter to only leads with email, phone, or address (check both address fields)
     const filteredData = (data || []).filter((lead: any) =>
       (lead.email && lead.email.trim() !== '') ||
       (lead.phone && lead.phone.trim() !== '') ||
-      (lead.address && lead.address.trim() !== '')
+      (lead.address && lead.address.trim() !== '') ||
+      (lead.street_address && lead.street_address.trim() !== '')
     );
 
-    return filteredData.map((lead: any) => ({
+    // Apply pagination after filtering
+    const paginatedData = limit > 0 ? filteredData.slice(offset, offset + limit) : filteredData;
+
+    return paginatedData.map((lead: any) => ({
       ...lead,
       name: `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || lead.name,
-      location: lead.address
+      location: lead.address || lead.street_address
         ? `${lead.city || ''}, ${lead.state || ''} ${lead.zip_code || ''}`.trim()
         : lead.location,
       status: lead.status || 'new',
@@ -369,6 +384,30 @@ export async function getLeads(limit: number = 50, offset: number = 0): Promise<
   } catch (error) {
     console.error('Error fetching leads:', error);
     return [];
+  }
+}
+
+// Get count of valid leads (with email, phone, or address)
+export async function getValidLeadsCount(): Promise<number> {
+  try {
+    const { data, error } = await supabase
+      .from('splash_leads')
+      .select('*');
+
+    if (error) throw error;
+
+    // Count only leads with email, phone, or address (check all possible address fields)
+    const validLeads = (data || []).filter((lead: any) =>
+      (lead.email && String(lead.email).trim() !== '') ||
+      (lead.phone && String(lead.phone).trim() !== '') ||
+      (lead.address && String(lead.address).trim() !== '') ||
+      (lead.street_address && String(lead.street_address).trim() !== '')
+    );
+
+    return validLeads.length;
+  } catch (error) {
+    console.error('Error fetching valid leads count:', error);
+    return 0;
   }
 }
 
@@ -535,6 +574,117 @@ export async function getCampaignById(id: string): Promise<Campaign | null> {
   } catch (error) {
     console.error('Error fetching campaign:', error);
     return null;
+  }
+}
+
+export interface CampaignEnrollment {
+  id: string;
+  campaign_id: string;
+  lead_id: string;
+  lead_type: string;
+  email_address: string;
+  status: 'active' | 'paused' | 'completed' | 'unsubscribed' | 'bounced';
+  current_step: number;
+  next_send_at: string | null;
+  last_sent_at: string | null;
+  enrolled_at: string;
+  completed_at: string | null;
+  unsubscribed_at: string | null;
+  lead_name?: string;
+}
+
+export async function getCampaignEnrollments(campaignId: string): Promise<CampaignEnrollment[]> {
+  try {
+    const { data, error } = await supabase
+      .from('campaign_enrollments')
+      .select('*')
+      .eq('campaign_id', campaignId)
+      .order('enrolled_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Fetch lead names for each enrollment
+    const enrollmentsWithNames = await Promise.all(
+      (data || []).map(async (enrollment: any) => {
+        let leadName = 'Unknown';
+
+        if (enrollment.lead_type === 'splash_leads') {
+          const { data: lead } = await supabase
+            .from('splash_leads')
+            .select('first_name, last_name, email')
+            .eq('id', enrollment.lead_id)
+            .single();
+
+          if (lead) {
+            leadName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || lead.email || 'Unknown';
+          }
+        }
+
+        return {
+          ...enrollment,
+          lead_name: leadName,
+        };
+      })
+    );
+
+    return enrollmentsWithNames;
+  } catch (error) {
+    console.error('Error fetching campaign enrollments:', error);
+    return [];
+  }
+}
+
+export async function getCampaignStats(campaignId: string): Promise<{
+  total_enrolled: number;
+  active: number;
+  completed: number;
+  unsubscribed: number;
+  bounced: number;
+}> {
+  try {
+    const { data, error } = await supabase
+      .from('campaign_enrollments')
+      .select('status')
+      .eq('campaign_id', campaignId);
+
+    if (error) throw error;
+
+    const stats = {
+      total_enrolled: data?.length || 0,
+      active: 0,
+      completed: 0,
+      unsubscribed: 0,
+      bounced: 0,
+    };
+
+    data?.forEach((enrollment: any) => {
+      switch (enrollment.status) {
+        case 'active':
+        case 'paused':
+          stats.active++;
+          break;
+        case 'completed':
+          stats.completed++;
+          break;
+        case 'unsubscribed':
+          stats.unsubscribed++;
+          break;
+        case 'bounced':
+          stats.bounced++;
+          break;
+      }
+    });
+
+    return stats;
+  } catch (error) {
+    console.error('Error fetching campaign stats:', error);
+    return {
+      total_enrolled: 0,
+      active: 0,
+      completed: 0,
+      unsubscribed: 0,
+      bounced: 0,
+    };
   }
 }
 
