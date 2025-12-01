@@ -13,10 +13,10 @@ import {
   Menu,
   X,
   Settings,
-  Bell,
   Target,
   BarChart3,
 } from 'lucide-react';
+import { NotificationsDropdown } from '@/components/crm/NotificationsDropdown';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -169,10 +169,7 @@ export default function CRMLayout({
           {/* Right Side - User Menu */}
           <div className="flex items-center space-x-4">
             {/* Notifications */}
-            <Button variant="ghost" size="sm" className="relative text-gray-400 hover:text-white">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#ff0000]"></span>
-            </Button>
+            <NotificationsDropdown />
 
             {/* Settings */}
             <Link href="/crm/settings">
