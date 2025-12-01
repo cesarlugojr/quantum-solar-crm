@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getProjectById } from '../../actions';
 import { formatCurrency, PROJECT_STAGE_LABELS, REVENUE_TYPE_INFO, getProjectStageColor } from '@/types/crm';
+import { EditProjectDialog } from '@/components/crm/EditProjectDialog';
+import { DeleteRecordButton } from '@/components/crm/DeleteRecordButton';
 
 export const metadata: Metadata = {
   title: 'Project Details | Quantum Solar CRM',
@@ -49,12 +51,15 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
             {project.state && `, ${project.state}`}
           </p>
         </div>
-        <Badge
-          variant="outline"
-          className={`${getProjectStageColor(project.current_stage)} bg-opacity-20 border-current text-lg px-4 py-2`}
-        >
-          {stageLabel}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <EditProjectDialog project={project} />
+          <Badge
+            variant="outline"
+            className={`${getProjectStageColor(project.current_stage)} bg-opacity-20 border-current text-lg px-4 py-2`}
+          >
+            {stageLabel}
+          </Badge>
+        </div>
       </div>
 
       {/* Project Metrics */}
@@ -307,6 +312,20 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Danger Zone */}
+          <div className="bg-gray-900/50 border border-red-900/50 rounded-lg p-6">
+            <h3 className="font-semibold text-white mb-4">Danger Zone</h3>
+            <p className="text-gray-400 text-sm mb-4">
+              Permanently delete this project and all associated data.
+            </p>
+            <DeleteRecordButton
+              recordId={project.id}
+              recordName={project.customer_name}
+              recordType="project"
+              redirectPath="/crm/projects"
+            />
           </div>
         </div>
       </div>

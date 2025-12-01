@@ -12,6 +12,9 @@ import { Badge } from '@/components/ui/badge';
 import { getLeadById, getOpportunityIdForLead } from '../../actions';
 import { getLeadStatusColor, LEAD_STATUS_LABELS, CONTACTED_DETAIL_LABELS, LEAD_LOST_REASON_LABELS } from '@/types/crm';
 import { ConvertLeadToOpportunityButton } from '@/components/crm/ConversionButtons';
+import { EditLeadDialog } from '@/components/crm/EditLeadDialog';
+import { LeadCampaignEnrollment } from '@/components/crm/LeadCampaignEnrollment';
+import { DeleteRecordButton } from '@/components/crm/DeleteRecordButton';
 
 export const metadata: Metadata = {
   title: 'Lead Details | Quantum Solar CRM',
@@ -102,6 +105,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <EditLeadDialog lead={lead} />
           <Badge
             variant="outline"
             className={`${getLeadStatusColor(lead.status)} bg-opacity-20 border-current text-lg px-4 py-2`}
@@ -398,8 +402,21 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
                   </Button>
                 </a>
               )}
+
+              {/* Delete Lead */}
+              <div className="pt-3 border-t border-gray-700">
+                <DeleteRecordButton
+                  recordId={lead.id}
+                  recordName={lead.name || 'Unknown Lead'}
+                  recordType="lead"
+                  redirectPath="/crm/leads"
+                />
+              </div>
             </div>
           </div>
+
+          {/* Email Campaign Enrollment */}
+          <LeadCampaignEnrollment leadId={lead.id} leadEmail={lead.email} />
 
           {/* Lead Metadata */}
           <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">

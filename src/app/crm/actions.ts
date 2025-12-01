@@ -631,7 +631,8 @@ export async function getCampaignEnrollments(campaignId: string): Promise<Campai
       (data || []).map(async (enrollment: any) => {
         let leadName = 'Unknown';
 
-        if (enrollment.lead_type === 'splash_leads') {
+        // Handle both 'splash_lead' (correct) and 'splash_leads' (legacy)
+        if (enrollment.lead_type === 'splash_lead' || enrollment.lead_type === 'splash_leads') {
           const { data: lead } = await supabase
             .from('splash_leads')
             .select('first_name, last_name, email')
@@ -640,6 +641,16 @@ export async function getCampaignEnrollments(campaignId: string): Promise<Campai
 
           if (lead) {
             leadName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || lead.email || 'Unknown';
+          }
+        } else if (enrollment.lead_type === 'contact_submission') {
+          const { data: contact } = await supabase
+            .from('contact_submissions')
+            .select('name, email')
+            .eq('id', enrollment.lead_id)
+            .single();
+
+          if (contact) {
+            leadName = contact.name || contact.email || 'Unknown';
           }
         }
 
@@ -1191,6 +1202,396 @@ export async function convertOpportunityToProject(opportunityId: string): Promis
     return { success: true, id: project.id };
   } catch (error) {
     console.error('Error converting opportunity to project:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+// ============================================
+// CAMPAIGN ENROLLMENT FUNCTIONS
+// ============================================
+
+/**
+ * Enroll a lead in a campaign
+ */
+export async function enrollLeadInCampaign(
+  leadId: string,
+  campaignId: string,
+  leadType: 'splash_lead' | 'contact_submission' = 'splash_lead'
+): Promise<{ success: boolean; error?: string; enrollmentId?: string }> {
+  try {
+    // Map lead_type to table name
+    const tableName = leadType === 'splash_lead' ? 'splash_leads' : 'contact_submissions';
+
+    // Fetch the lead to get email
+    const { data: lead, error: leadError } = await supabase
+      .from(tableName)
+      .select('id, email, first_name, last_name')
+      .eq('id', leadId)
+      .single();
+
+    if (leadError || !lead) {
+      return { success: false, error: 'Lead not found' };
+    }
+
+    if (!lead.email) {
+      return { success: false, error: 'Lead does not have an email address' };
+    }
+
+    // Check if already enrolled
+    const { data: existing } = await supabase
+      .from('campaign_enrollments')
+      .select('id, status')
+      .eq('campaign_id', campaignId)
+      .eq('lead_id', leadId)
+      .single();
+
+    if (existing) {
+      return { success: false, error: 'Lead is already enrolled in this campaign' };
+    }
+
+    // Get campaign details
+    const { data: campaign, error: campaignError } = await supabase
+      .from('email_campaigns')
+      .select('id, name, active')
+      .eq('id', campaignId)
+      .single();
+
+    if (campaignError || !campaign) {
+      return { success: false, error: 'Campaign not found' };
+    }
+
+    if (!campaign.active) {
+      return { success: false, error: 'Campaign is not active' };
+    }
+
+    // Get first sequence to calculate initial send time
+    const { data: firstSequence } = await supabase
+      .from('email_sequences')
+      .select('delay_days, delay_hours, send_time_hour')
+      .eq('campaign_id', campaignId)
+      .eq('sequence_order', 1)
+      .eq('active', true)
+      .single();
+
+    // Calculate next send time
+    const nextSendAt = new Date();
+    if (firstSequence) {
+      nextSendAt.setDate(nextSendAt.getDate() + (firstSequence.delay_days || 0));
+      nextSendAt.setHours(nextSendAt.getHours() + (firstSequence.delay_hours || 0));
+
+      if (firstSequence.send_time_hour !== null) {
+        nextSendAt.setHours(firstSequence.send_time_hour, 0, 0, 0);
+        if (nextSendAt < new Date()) {
+          nextSendAt.setDate(nextSendAt.getDate() + 1);
+        }
+      }
+    }
+
+    // Create enrollment
+    const { data: enrollment, error: enrollError } = await supabase
+      .from('campaign_enrollments')
+      .insert({
+        campaign_id: campaignId,
+        lead_type: leadType,
+        lead_id: leadId,
+        email_address: lead.email,
+        current_step: 0,
+        status: 'active',
+        next_send_at: nextSendAt.toISOString(),
+        enrolled_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (enrollError) {
+      console.error('Error creating enrollment:', enrollError);
+      return { success: false, error: enrollError.message };
+    }
+
+    return { success: true, enrollmentId: enrollment.id };
+  } catch (error) {
+    console.error('Error enrolling lead in campaign:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Get enrollments for a lead
+ */
+export async function getLeadEnrollments(leadId: string): Promise<CampaignEnrollment[]> {
+  try {
+    const { data, error } = await supabase
+      .from('campaign_enrollments')
+      .select(`
+        *,
+        campaign:email_campaigns(id, name, active)
+      `)
+      .eq('lead_id', leadId)
+      .order('enrolled_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching lead enrollments:', error);
+      return [];
+    }
+
+    return (data || []).map((enrollment: any) => ({
+      ...enrollment,
+      campaign_name: enrollment.campaign?.name || 'Unknown Campaign',
+    }));
+  } catch (error) {
+    console.error('Error fetching lead enrollments:', error);
+    return [];
+  }
+}
+
+/**
+ * Get active campaigns available for enrollment
+ */
+export async function getActiveCampaigns(): Promise<Campaign[]> {
+  try {
+    const { data, error } = await supabase
+      .from('email_campaigns')
+      .select('*')
+      .eq('active', true)
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching active campaigns:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching active campaigns:', error);
+    return [];
+  }
+}
+
+// ============================================
+// UPDATE FUNCTIONS
+// ============================================
+
+export interface UpdateResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Update a lead's information
+ */
+export async function updateLead(id: string, data: Partial<LeadV2>): Promise<UpdateResult> {
+  try {
+    // Remove computed fields that shouldn't be updated
+    const { name, location, ...updateData } = data as any;
+
+    const { error } = await supabase
+      .from('splash_leads')
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating lead:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating lead:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Update an opportunity's information
+ */
+export async function updateOpportunity(id: string, data: Partial<OpportunityV2>): Promise<UpdateResult> {
+  try {
+    const { error } = await supabase
+      .from('opportunities')
+      .update({
+        ...data,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating opportunity:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating opportunity:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Update a project's information
+ */
+export async function updateProject(id: string, data: Partial<ProjectV2>): Promise<UpdateResult> {
+  try {
+    const { error } = await supabase
+      .from('projects')
+      .update({
+        ...data,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating project:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating project:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+// ============================================
+// DELETE FUNCTIONS
+// ============================================
+
+export interface DeleteResult {
+  success: boolean;
+  error?: string;
+  deletedCount?: number;
+}
+
+/**
+ * Delete a single lead
+ */
+export async function deleteLead(id: string): Promise<DeleteResult> {
+  try {
+    const { error } = await supabase
+      .from('splash_leads')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting lead:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, deletedCount: 1 };
+  } catch (error) {
+    console.error('Error deleting lead:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Delete multiple leads
+ */
+export async function deleteLeads(ids: string[]): Promise<DeleteResult> {
+  try {
+    const { error } = await supabase
+      .from('splash_leads')
+      .delete()
+      .in('id', ids);
+
+    if (error) {
+      console.error('Error deleting leads:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, deletedCount: ids.length };
+  } catch (error) {
+    console.error('Error deleting leads:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Delete a single opportunity
+ */
+export async function deleteOpportunity(id: string): Promise<DeleteResult> {
+  try {
+    const { error } = await supabase
+      .from('opportunities')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting opportunity:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, deletedCount: 1 };
+  } catch (error) {
+    console.error('Error deleting opportunity:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Delete multiple opportunities
+ */
+export async function deleteOpportunities(ids: string[]): Promise<DeleteResult> {
+  try {
+    const { error } = await supabase
+      .from('opportunities')
+      .delete()
+      .in('id', ids);
+
+    if (error) {
+      console.error('Error deleting opportunities:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, deletedCount: ids.length };
+  } catch (error) {
+    console.error('Error deleting opportunities:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Delete a single project
+ */
+export async function deleteProject(id: string): Promise<DeleteResult> {
+  try {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting project:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, deletedCount: 1 };
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Delete multiple projects
+ */
+export async function deleteProjects(ids: string[]): Promise<DeleteResult> {
+  try {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .in('id', ids);
+
+    if (error) {
+      console.error('Error deleting projects:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, deletedCount: ids.length };
+  } catch (error) {
+    console.error('Error deleting projects:', error);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

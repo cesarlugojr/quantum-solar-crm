@@ -844,7 +844,7 @@ GRANT EXECUTE ON FUNCTION refresh_campaign_performance TO authenticated;
 -- Insert sample campaigns (commented out - uncomment to create test data)
 /*
 INSERT INTO email_campaigns (name, description, trigger_type, trigger_conditions, active) VALUES
-('Ameren Illinois New Lead Campaign', 'Welcome sequence for new Illinois Ameren leads', 'form_submission', '{"form_variant": "ameren_illinois_solar_ppa", "tcpa_consent": true}'::jsonb, true),
+('Ameren Illinois New Lead Campaign', 'Welcome sequence for new Illinois Ameren leads', 'form_submission', '{"form_variant": "ameren_illinois_competitor", "tcpa_consent": true}'::jsonb, true),
 ('Abandoned Form Nurture', 'Re-engagement for abandoned forms with contact info', 'form_submission', '{"is_partial": true}'::jsonb, true),
 ('General Contact Follow-Up', 'Follow-up sequence for general contact form submissions', 'form_submission', '{"lead_type": "contact_submission"}'::jsonb, true);
 */

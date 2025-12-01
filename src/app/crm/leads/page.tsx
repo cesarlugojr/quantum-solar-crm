@@ -1,26 +1,16 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { Plus, Phone, Mail, MapPin } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import Link from 'next/link';
 import { getLeads } from '../actions';
-import { formatCurrency, getLeadStatusColor, LEAD_STATUS_LABELS } from '@/types/crm';
+import { LeadsTable } from '@/components/crm/LeadsTable';
 
 export const metadata: Metadata = {
   title: 'Leads | Quantum Solar CRM',
   description: 'Manage solar leads with enhanced filtering and data tables',
 };
 
-async function LeadsTable() {
+async function LeadsTableWrapper() {
   const leads = await getLeads(100);
 
   if (!leads || leads.length === 0) {
@@ -38,109 +28,7 @@ async function LeadsTable() {
     );
   }
 
-  return (
-    <div className="bg-gray-900/50 border border-gray-700 rounded-lg overflow-hidden">
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-gray-700 hover:bg-gray-800/50">
-              <TableHead className="text-gray-400">Name</TableHead>
-              <TableHead className="text-gray-400">Contact</TableHead>
-              <TableHead className="text-gray-400">Street Address</TableHead>
-              <TableHead className="text-gray-400">City</TableHead>
-              <TableHead className="text-gray-400">State</TableHead>
-              <TableHead className="text-gray-400">ZIP</TableHead>
-              <TableHead className="text-gray-400">Electric Bill</TableHead>
-              <TableHead className="text-gray-400">Status</TableHead>
-              <TableHead className="text-gray-400">Created</TableHead>
-              <TableHead className="text-gray-400 text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {leads.map((lead) => (
-              <TableRow
-                key={lead.id}
-                className="border-gray-700 hover:bg-gray-800/50"
-              >
-                <TableCell>
-                  <p className="font-medium text-white">{lead.name || `${lead.first_name} ${lead.last_name}`}</p>
-                </TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    {lead.email && (
-                      <div className="flex items-center gap-2 text-sm text-gray-300">
-                        <Mail className="h-3 w-3 text-gray-500" />
-                        <span className="truncate max-w-[180px]">{lead.email}</span>
-                      </div>
-                    )}
-                    {lead.phone && (
-                      <div className="flex items-center gap-2 text-sm text-gray-300">
-                        <Phone className="h-3 w-3 text-gray-500" />
-                        {lead.phone}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-gray-300">
-                  {lead.street_address || lead.address ? (
-                    <span className="truncate max-w-[200px] block">
-                      {lead.street_address || lead.address}
-                    </span>
-                  ) : (
-                    <span className="text-gray-500">-</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-gray-300">
-                  {lead.city || <span className="text-gray-500">-</span>}
-                </TableCell>
-                <TableCell className="text-gray-300">
-                  {lead.state || <span className="text-gray-500">-</span>}
-                </TableCell>
-                <TableCell className="text-gray-300">
-                  {lead.zip_code || <span className="text-gray-500">-</span>}
-                </TableCell>
-                <TableCell className="text-gray-300">
-                  {lead.electric_bill ? (
-                    formatCurrency(lead.electric_bill)
-                  ) : lead.average_monthly_bill ? (
-                    formatCurrency(lead.average_monthly_bill)
-                  ) : (
-                    <span className="text-gray-500">-</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={`${getLeadStatusColor(lead.status)} bg-opacity-20 border-current`}
-                  >
-                    {LEAD_STATUS_LABELS[lead.status as keyof typeof LEAD_STATUS_LABELS] || lead.status || 'new'}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-gray-400 text-sm whitespace-nowrap">
-                  {new Date(lead.created_at).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Link href={`/crm/leads/${lead.id}`}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-400 hover:text-white"
-                    >
-                      View
-                    </Button>
-                  </Link>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
+  return <LeadsTable leads={leads} />;
 }
 
 export default function LeadsPage() {
@@ -166,7 +54,7 @@ export default function LeadsPage() {
           <p className="text-center text-gray-400">Loading leads...</p>
         </div>
       }>
-        <LeadsTable />
+        <LeadsTableWrapper />
       </Suspense>
     </div>
   );

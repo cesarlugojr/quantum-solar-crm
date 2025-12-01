@@ -46,7 +46,7 @@ export async function POST() {
         trigger_type: 'form_submission',
         trigger_conditions: {
           source: 'splash_leads',
-          form_variant: 'ameren_illinois_solar_ppa',
+          form_variant: 'ameren_illinois_competitor',
           paid: true
         },
         active: true

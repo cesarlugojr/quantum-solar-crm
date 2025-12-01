@@ -24,6 +24,8 @@ import {
   OpportunityLostReason,
 } from '@/types/crm';
 import { ConvertOpportunityToProjectButton } from '@/components/crm/ConversionButtons';
+import { EditOpportunityDialog } from '@/components/crm/EditOpportunityDialog';
+import { DeleteRecordButton } from '@/components/crm/DeleteRecordButton';
 
 export const metadata: Metadata = {
   title: 'Opportunity Details | Quantum Solar CRM',
@@ -83,9 +85,7 @@ export default async function OpportunityDetailPage({
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800">
-            Edit
-          </Button>
+          <EditOpportunityDialog opportunity={opportunity} />
           {opportunity.status !== 'sale' && opportunity.status !== 'opportunity_lost' && (
             <>
               <ConvertOpportunityToProjectButton
@@ -305,6 +305,20 @@ export default async function OpportunityDetailPage({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="bg-gray-900/50 border border-red-900/50 rounded-lg p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">Danger Zone</h2>
+        <p className="text-gray-400 text-sm mb-4">
+          Permanently delete this opportunity and all associated data. This action cannot be undone.
+        </p>
+        <DeleteRecordButton
+          recordId={opportunity.id}
+          recordName={opportunity.customer_name}
+          recordType="opportunity"
+          redirectPath="/crm/opportunities"
+        />
       </div>
     </div>
   );

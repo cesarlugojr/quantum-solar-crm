@@ -16,7 +16,7 @@ VALUES (
   'Ameren Illinois Paid Lead Fast Track',
   '5-email aggressive sequence for Illinois Ameren promotion leads. Fast-paced with pricing by email 2-3.',
   'form_submission',
-  '{"source": "splash_leads", "form_variant": "ameren_illinois_solar_ppa", "paid": true}'::jsonb,
+  '{"source": "splash_leads", "form_variant": "ameren_illinois_competitor", "paid": true}'::jsonb,
   true
 ) ON CONFLICT (name) DO NOTHING
 RETURNING id;
