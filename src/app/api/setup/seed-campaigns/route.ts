@@ -475,7 +475,7 @@ function getCalculatorWelcomeHTML_EN(): string {
       <li><strong>7-9 year payback</strong> - then 15+ years of FREE power</li>
     </ul>
     <div style="text-align: center; margin: 35px 0;">
-      <a href="https://quantumsolar.us/schedule" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block; box-shadow: 0 4px 15px rgba(0,137,208,0.3);">
+      <a href="https://quantumsolar.us/state-promotions/illinois/ameren-il" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block; box-shadow: 0 4px 15px rgba(0,137,208,0.3);">
         Get My Free Custom Design
       </a>
     </div>
@@ -514,7 +514,7 @@ Your calculator estimate is a great start, but a personalized design can unlock 
 - Custom roof analysis using satellite imagery
 - 7-9 year payback - then 15+ years of FREE power
 
-Get your free custom design: https://quantumsolar.us/schedule
+Get your free custom design: https://quantumsolar.us/state-promotions/illinois/ameren-il
 Or call us: (312) 792-7766
 
 Free design - No obligation - Response in 24 hours
@@ -561,7 +561,7 @@ function getCalculatorFollowUp1HTML_EN(): string {
       <p style="margin: 0; font-size: 32px; color: #2e7d32; font-weight: bold;">\${{totalSavings}}+</p>
     </div>
     <div style="text-align: center; margin: 35px 0;">
-      <a href="https://quantumsolar.us/schedule" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
+      <a href="https://quantumsolar.us/state-promotions/illinois/ameren-il" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
         See My Custom Proposal
       </a>
     </div>
@@ -595,7 +595,7 @@ Or... go solar with $0 down financing:
 
 YOUR POTENTIAL 25-YEAR SOLAR SAVINGS: \${{totalSavings}}+
 
-See your custom proposal: https://quantumsolar.us/schedule
+See your custom proposal: https://quantumsolar.us/state-promotions/illinois/ameren-il
 
 Free design - No obligation - Response in 24 hours
 
@@ -642,7 +642,7 @@ function getCalculatorEducationalHTML_EN(): string {
       </p>
     </div>
     <div style="text-align: center; margin: 35px 0;">
-      <a href="https://quantumsolar.us/schedule" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
+      <a href="https://quantumsolar.us/state-promotions/illinois/ameren-il" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
         Get My Free Quote
       </a>
     </div>
@@ -677,7 +677,7 @@ RECENT INSTALLATION: AURORA
 
 WHY WAIT? The 30% federal tax credit won't last forever, and utility rates keep rising 4% annually.
 
-Get your free quote: https://quantumsolar.us/schedule
+Get your free quote: https://quantumsolar.us/state-promotions/illinois/ameren-il
 
 Quantum Solar Enterprises LLC
 Unsubscribe: {{unsubscribeUrl}}`;
@@ -722,7 +722,7 @@ function getCalculatorUrgencyHTML_EN(): string {
       </p>
     </div>
     <div style="text-align: center; margin: 35px 0;">
-      <a href="https://quantumsolar.us/schedule?urgent=true" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
+      <a href="https://quantumsolar.us/state-promotions/illinois/ameren-il" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
         Lock In 30% Credit Now
       </a>
     </div>
@@ -756,7 +756,7 @@ Good news: We can lock in your 30% credit TODAY with $0 down:
 
 LIMITED AVAILABILITY: Our installation calendar is filling up. Lock in your spot now to avoid delays.
 
-Lock in 30% credit now: https://quantumsolar.us/schedule?urgent=true
+Lock in 30% credit now: https://quantumsolar.us/state-promotions/illinois/ameren-il
 
 Quantum Solar Enterprises LLC
 Unsubscribe: {{unsubscribeUrl}}`;
@@ -794,7 +794,7 @@ function getCalculatorFinalHTML_EN(): string {
       <strong>Take 60 seconds:</strong> Reply to this email or click below. If solar makes sense, great. If not, at least you'll know for sure.
     </p>
     <div style="text-align: center; margin: 35px 0;">
-      <a href="https://quantumsolar.us/schedule" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
+      <a href="https://quantumsolar.us/state-promotions/illinois/ameren-il" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
         Yes, Show Me My Savings
       </a>
     </div>
@@ -830,7 +830,7 @@ I understand you're busy and maybe solar isn't the right fit right now. But I do
 
 Take 60 seconds: Reply to this email or click below. If solar makes sense, great. If not, at least you'll know for sure.
 
-Yes, show me my savings: https://quantumsolar.us/schedule
+Yes, show me my savings: https://quantumsolar.us/state-promotions/illinois/ameren-il
 
 Or reply "NOT INTERESTED" and we'll remove you from this sequence.
 
@@ -882,7 +882,7 @@ function getCalculatorWelcomeHTML_ES(): string {
       <li><strong>Retorno de 7-9 anos</strong> - luego 15+ anos de energia GRATIS</li>
     </ul>
     <div style="text-align: center; margin: 35px 0;">
-      <a href="https://quantumsolar.us/schedule" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block; box-shadow: 0 4px 15px rgba(0,137,208,0.3);">
+      <a href="https://quantumsolar.us/state-promotions/illinois/ameren-il" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block; box-shadow: 0 4px 15px rgba(0,137,208,0.3);">
         Obtener Mi Diseno Gratuito
       </a>
     </div>
@@ -921,7 +921,7 @@ Tu estimado es un buen comienzo, pero un diseno personalizado puede desbloquear 
 - Analisis personalizado de tu techo usando imagenes satelitales
 - Retorno de 7-9 anos - luego 15+ anos de energia GRATIS
 
-Obtener tu diseno gratuito: https://quantumsolar.us/schedule
+Obtener tu diseno gratuito: https://quantumsolar.us/state-promotions/illinois/ameren-il
 O llamanos: (312) 792-7766
 
 Diseno gratuito - Sin compromiso - Respuesta en 24 horas
@@ -968,7 +968,7 @@ function getCalculatorFollowUp1HTML_ES(): string {
       <p style="margin: 0; font-size: 32px; color: #2e7d32; font-weight: bold;">\${{totalSavings}}+</p>
     </div>
     <div style="text-align: center; margin: 35px 0;">
-      <a href="https://quantumsolar.us/schedule" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
+      <a href="https://quantumsolar.us/state-promotions/illinois/ameren-il" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
         Ver Mi Propuesta Personalizada
       </a>
     </div>
@@ -1002,7 +1002,7 @@ O... instala solar con $0 de enganche:
 
 TU AHORRO POTENCIAL EN 25 ANOS: \${{totalSavings}}+
 
-Ver tu propuesta personalizada: https://quantumsolar.us/schedule
+Ver tu propuesta personalizada: https://quantumsolar.us/state-promotions/illinois/ameren-il
 
 Diseno gratuito - Sin compromiso - Respuesta en 24 horas
 
@@ -1049,7 +1049,7 @@ function getCalculatorEducationalHTML_ES(): string {
       </p>
     </div>
     <div style="text-align: center; margin: 35px 0;">
-      <a href="https://quantumsolar.us/schedule" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
+      <a href="https://quantumsolar.us/state-promotions/illinois/ameren-il" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
         Obtener Mi Cotizacion Gratuita
       </a>
     </div>
@@ -1084,7 +1084,7 @@ Sistema de 10.2 kW | $0 enganche | Ahorrando $2,800/ano
 
 POR QUE ESPERAR? El credito fiscal federal del 30% no durara para siempre, y las tarifas electricas siguen subiendo 4% anualmente.
 
-Obtener tu cotizacion gratuita: https://quantumsolar.us/schedule
+Obtener tu cotizacion gratuita: https://quantumsolar.us/state-promotions/illinois/ameren-il
 
 Quantum Solar Enterprises LLC
 Cancelar suscripcion: {{unsubscribeUrl}}`;
@@ -1129,7 +1129,7 @@ function getCalculatorUrgencyHTML_ES(): string {
       </p>
     </div>
     <div style="text-align: center; margin: 35px 0;">
-      <a href="https://quantumsolar.us/schedule?urgent=true" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
+      <a href="https://quantumsolar.us/state-promotions/illinois/ameren-il" style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
         Asegurar Credito del 30% Ahora
       </a>
     </div>
@@ -1163,7 +1163,7 @@ Buenas noticias: Podemos asegurar tu credito del 30% HOY con $0 de enganche:
 
 DISPONIBILIDAD LIMITADA: Nuestro calendario de instalaciones se esta llenando. Asegura tu espacio ahora.
 
-Asegurar credito del 30% ahora: https://quantumsolar.us/schedule?urgent=true
+Asegurar credito del 30% ahora: https://quantumsolar.us/state-promotions/illinois/ameren-il
 
 Quantum Solar Enterprises LLC
 Cancelar suscripcion: {{unsubscribeUrl}}`;
@@ -1201,7 +1201,7 @@ function getCalculatorFinalHTML_ES(): string {
       <strong>Toma 60 segundos:</strong> Responde a este correo o haz clic abajo. Si solar tiene sentido, excelente. Si no, al menos sabras con certeza.
     </p>
     <div style="text-align: center; margin: 35px 0;">
-      <a href="https://quantumsolar.us/schedule" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
+      <a href="https://quantumsolar.us/state-promotions/illinois/ameren-il" style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: 600; display: inline-block;">
         Si, Muestrame Mis Ahorros
       </a>
     </div>
@@ -1237,7 +1237,7 @@ Entiendo que estas ocupado y tal vez solar no es lo correcto ahora mismo. Pero n
 
 Toma 60 segundos: Responde a este correo o haz clic abajo. Si solar tiene sentido, excelente. Si no, al menos sabras con certeza.
 
-Si, muestrame mis ahorros: https://quantumsolar.us/schedule
+Si, muestrame mis ahorros: https://quantumsolar.us/state-promotions/illinois/ameren-il
 
 O responde "NO INTERESADO" y te removeremos de esta secuencia.
 
