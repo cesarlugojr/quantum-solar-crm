@@ -442,6 +442,24 @@ export async function getLeadById(id: string): Promise<LeadV2 | null> {
   }
 }
 
+/**
+ * Get opportunity ID for a lead (if exists)
+ */
+export async function getOpportunityIdForLead(leadId: string): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from('opportunities')
+      .select('id')
+      .eq('lead_id', leadId)
+      .single();
+
+    if (error || !data) return null;
+    return data.id;
+  } catch {
+    return null;
+  }
+}
+
 // ============================================
 // PROJECTS DATA
 // ============================================
@@ -1010,6 +1028,170 @@ export async function getReportData(reportType: 'adders' | 'average-days' | 'mon
   } catch (error) {
     console.error('Error fetching report data:', error);
     return null;
+  }
+}
+
+// ============================================
+// CONVERSION FUNCTIONS
+// ============================================
+
+export interface ConversionResult {
+  success: boolean;
+  id?: string;
+  error?: string;
+}
+
+/**
+ * Convert a lead to an opportunity
+ * Creates a new opportunity record with data from the lead
+ */
+export async function convertLeadToOpportunity(leadId: string): Promise<ConversionResult> {
+  try {
+    // Fetch the lead data
+    const { data: lead, error: leadError } = await supabase
+      .from('splash_leads')
+      .select('*')
+      .eq('id', leadId)
+      .single();
+
+    if (leadError || !lead) {
+      return { success: false, error: 'Lead not found' };
+    }
+
+    // Check if opportunity already exists for this lead
+    const { data: existingOpp } = await supabase
+      .from('opportunities')
+      .select('id')
+      .eq('lead_id', leadId)
+      .single();
+
+    if (existingOpp) {
+      return { success: false, error: 'An opportunity already exists for this lead', id: existingOpp.id };
+    }
+
+    // Create the opportunity
+    const customerName = `${lead.first_name || ''} ${lead.last_name || ''}`.trim() || 'Unknown';
+
+    const { data: opportunity, error: oppError } = await supabase
+      .from('opportunities')
+      .insert({
+        lead_id: leadId,
+        customer_name: customerName,
+        email: lead.email,
+        phone: lead.phone,
+        address: lead.street_address || lead.address,
+        city: lead.city,
+        state: lead.state,
+        zip_code: lead.zip_code,
+        county: lead.county,
+        utility_company: lead.utility_company,
+        average_monthly_bill: lead.average_monthly_bill,
+        credit_score: lead.credit_score,
+        status: 'appointment_scheduled',
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (oppError) {
+      console.error('Error creating opportunity:', oppError);
+      return { success: false, error: oppError.message };
+    }
+
+    // Update the lead status to indicate conversion
+    await supabase
+      .from('splash_leads')
+      .update({
+        status: 'qualified',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', leadId);
+
+    return { success: true, id: opportunity.id };
+  } catch (error) {
+    console.error('Error converting lead to opportunity:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
+ * Convert an opportunity to a project
+ * Creates a new project record with data from the opportunity
+ */
+export async function convertOpportunityToProject(opportunityId: string): Promise<ConversionResult> {
+  try {
+    // Fetch the opportunity data
+    const { data: opportunity, error: oppError } = await supabase
+      .from('opportunities')
+      .select('*')
+      .eq('id', opportunityId)
+      .single();
+
+    if (oppError || !opportunity) {
+      return { success: false, error: 'Opportunity not found' };
+    }
+
+    // Check if project already exists for this opportunity
+    const { data: existingProject } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('opportunity_id', opportunityId)
+      .single();
+
+    if (existingProject) {
+      return { success: false, error: 'A project already exists for this opportunity', id: existingProject.id };
+    }
+
+    // Calculate estimated revenue based on system size (default to self_gen rate)
+    const systemSizeKw = opportunity.system_size_kw || 0;
+    const revenueType = 'self_gen'; // Default to self-generated
+    const rate = revenueType === 'self_gen' ? 1.47 : 0.60; // $/W rates
+    const estimatedRevenue = systemSizeKw * 1000 * rate;
+
+    // Create the project
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .insert({
+        opportunity_id: opportunityId,
+        lead_id: opportunity.lead_id,
+        customer_name: opportunity.customer_name,
+        email: opportunity.email,
+        phone: opportunity.phone,
+        address: opportunity.address || '',
+        city: opportunity.city,
+        state: opportunity.state,
+        zip_code: opportunity.zip_code,
+        county: opportunity.county,
+        system_size_kw: systemSizeKw,
+        revenue_type: revenueType,
+        estimated_revenue: estimatedRevenue,
+        current_stage: 5, // Contract Signed (start of project pipeline)
+        contract_signed_date: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (projectError) {
+      console.error('Error creating project:', projectError);
+      return { success: false, error: projectError.message };
+    }
+
+    // Update the opportunity to mark as converted
+    await supabase
+      .from('opportunities')
+      .update({
+        status: 'sale',
+        converted_at: new Date().toISOString(),
+        project_id: project.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', opportunityId);
+
+    return { success: true, id: project.id };
+  } catch (error) {
+    console.error('Error converting opportunity to project:', error);
+    return { success: false, error: 'An unexpected error occurred' };
   }
 }
 

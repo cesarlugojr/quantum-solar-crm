@@ -9,8 +9,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getLeadById } from '../../actions';
+import { getLeadById, getOpportunityIdForLead } from '../../actions';
 import { getLeadStatusColor, LEAD_STATUS_LABELS, CONTACTED_DETAIL_LABELS, LEAD_LOST_REASON_LABELS } from '@/types/crm';
+import { ConvertLeadToOpportunityButton } from '@/components/crm/ConversionButtons';
 
 export const metadata: Metadata = {
   title: 'Lead Details | Quantum Solar CRM',
@@ -57,7 +58,10 @@ function FieldDisplay({ label, value, icon: Icon }: { label: string; value: stri
 
 export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   const { id } = await params;
-  const lead = await getLeadById(id);
+  const [lead, existingOpportunityId] = await Promise.all([
+    getLeadById(id),
+    getOpportunityIdForLead(id),
+  ]);
 
   if (!lead) {
     notFound();
@@ -354,6 +358,13 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
           <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
             <h3 className="font-semibold text-white mb-4">Quick Actions</h3>
             <div className="space-y-3">
+              {/* Convert to Opportunity */}
+              <ConvertLeadToOpportunityButton
+                leadId={lead.id}
+                leadName={lead.name || 'this lead'}
+                existingOpportunityId={existingOpportunityId || undefined}
+              />
+
               {lead.email && (
                 <a href={`mailto:${lead.email}`} className="block">
                   <Button variant="outline" className="w-full justify-start text-gray-300 border-gray-600 hover:bg-gray-800">

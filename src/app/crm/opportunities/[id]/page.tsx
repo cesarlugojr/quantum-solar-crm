@@ -23,6 +23,7 @@ import {
   OPPORTUNITY_LOST_REASON_LABELS,
   OpportunityLostReason,
 } from '@/types/crm';
+import { ConvertOpportunityToProjectButton } from '@/components/crm/ConversionButtons';
 
 export const metadata: Metadata = {
   title: 'Opportunity Details | Quantum Solar CRM',
@@ -87,15 +88,24 @@ export default async function OpportunityDetailPage({
           </Button>
           {opportunity.status !== 'sale' && opportunity.status !== 'opportunity_lost' && (
             <>
-              <Button className="bg-green-600 hover:bg-green-700 text-white">
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Mark as Sale
-              </Button>
+              <ConvertOpportunityToProjectButton
+                opportunityId={opportunity.id}
+                customerName={opportunity.customer_name}
+                existingProjectId={opportunity.project_id || undefined}
+              />
               <Button variant="destructive">
                 <XCircle className="h-4 w-4 mr-2" />
                 Mark as Lost
               </Button>
             </>
+          )}
+          {opportunity.status === 'sale' && opportunity.project_id && (
+            <Link href={`/crm/projects/${opportunity.project_id}`}>
+              <Button className="bg-green-600 hover:bg-green-700 text-white">
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                View Project
+              </Button>
+            </Link>
           )}
         </div>
       </div>
