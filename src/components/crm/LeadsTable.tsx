@@ -196,7 +196,7 @@ export function LeadsTable({ leads }: LeadsTableProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Link href={`/crm/leads/${lead.id}`}>
+                      <Link href={`/crm/leads/${lead.id}`} prefetch={false}>
                         <Button
                           variant="ghost"
                           size="sm"
