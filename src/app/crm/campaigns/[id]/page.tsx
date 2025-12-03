@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: 'Campaign Details | Quantum Solar CRM',
 };
 
+// Force dynamic rendering - this page fetches data by ID
+export const dynamic = 'force-dynamic';
+
 interface CampaignDetailPageProps {
   params: Promise<{
     id: string;

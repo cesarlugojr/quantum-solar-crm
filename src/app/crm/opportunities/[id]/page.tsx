@@ -32,6 +32,9 @@ export const metadata: Metadata = {
   description: 'View and manage opportunity details',
 };
 
+// Force dynamic rendering - this page fetches data by ID
+export const dynamic = 'force-dynamic';
+
 function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
     appointment_scheduled: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
