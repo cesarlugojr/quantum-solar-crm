@@ -447,7 +447,7 @@ function getCalculatorWelcomeHTML_EN(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 28px;">Your IL Solar Savings: \${{estimatedSavings}}/yr</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -485,7 +485,7 @@ function getCalculatorWelcomeHTML_EN(): string {
     </p>
   </div>
   <div style="background: #1a1a2e; padding: 30px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 35px; margin-bottom: 15px; filter: brightness(0) invert(1);">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 150px; height: auto; margin-bottom: 15px; filter: brightness(0) invert(1);">
     <p style="color: #aaa; font-size: 12px; margin: 10px 0;">
       Quantum Solar Enterprises LLC<br>
       511 W 5th St, Tilton, IL 61833<br>
@@ -536,7 +536,7 @@ function getCalculatorFollowUp1HTML_EN(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 26px;">{{firstName}}, Your Solar ROI in 7-9 Years</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -614,7 +614,7 @@ function getCalculatorEducationalHTML_EN(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 26px;">500+ IL Homeowners Went Solar in 2024</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -694,7 +694,7 @@ function getCalculatorUrgencyHTML_EN(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px; filter: brightness(0) invert(1);">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px; filter: brightness(0) invert(1);">
     <h1 style="color: white; margin: 0; font-size: 26px;">TIME-SENSITIVE: \${{taxCredit}} Tax Credit at Risk</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -773,7 +773,7 @@ function getCalculatorFinalHTML_EN(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 26px;">Last Chance: Your Solar Quote Expires</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -856,7 +856,7 @@ function getCalculatorWelcomeHTML_ES(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 28px;">Tus Ahorros Solares en IL: \${{estimatedSavings}}/ano</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -894,7 +894,7 @@ function getCalculatorWelcomeHTML_ES(): string {
     </p>
   </div>
   <div style="background: #1a1a2e; padding: 30px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 35px; margin-bottom: 15px; filter: brightness(0) invert(1);">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 150px; height: auto; margin-bottom: 15px; filter: brightness(0) invert(1);">
     <p style="color: #aaa; font-size: 12px; margin: 10px 0;">
       Quantum Solar Enterprises LLC<br>
       511 W 5th St, Tilton, IL 61833<br>
@@ -945,7 +945,7 @@ function getCalculatorFollowUp1HTML_ES(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 26px;">{{firstName}}, Tu Retorno Solar en 7-9 Anos</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -1023,7 +1023,7 @@ function getCalculatorEducationalHTML_ES(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 26px;">500+ Propietarios de IL Instalaron Solar en 2024</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -1103,7 +1103,7 @@ function getCalculatorUrgencyHTML_ES(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px; filter: brightness(0) invert(1);">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px; filter: brightness(0) invert(1);">
     <h1 style="color: white; margin: 0; font-size: 26px;">URGENTE: \${{taxCredit}} en Credito Fiscal en Riesgo</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -1182,7 +1182,7 @@ function getCalculatorFinalHTML_ES(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 26px;">Ultima Oportunidad: Tu Cotizacion Solar Expira</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -1265,7 +1265,7 @@ function getAmerenWelcomeHTML_EN(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 26px;">{{firstName}}, Ameren Customers Save $2,847/Year</h1>
     <p style="color: #87CEEB; margin: 10px 0 0 0; font-size: 16px;">Your personalized savings quote is ready</p>
   </div>
@@ -1313,7 +1313,7 @@ function getAmerenWelcomeHTML_EN(): string {
     </p>
   </div>
   <div style="background: #1a1a2e; padding: 30px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 35px; margin-bottom: 15px; filter: brightness(0) invert(1);">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 150px; height: auto; margin-bottom: 15px; filter: brightness(0) invert(1);">
     <p style="color: #aaa; font-size: 12px; margin: 10px 0;">
       Quantum Solar Enterprises LLC | 511 W 5th St, Tilton, IL 61833 | Restoring faith in residential solar
     </p>
@@ -1362,7 +1362,7 @@ function getAmerenROIHTML_EN(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 24px;">{{firstName}}, Here's What 25 Years of Ameren Bills Really Costs</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -1483,7 +1483,7 @@ function getAmerenSocialProofHTML_EN(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 24px;">312 Ameren Customers Switched This Month</h1>
     <p style="color: #87CEEB; margin: 10px 0 0 0; font-size: 16px;">Here's what they're saying...</p>
   </div>
@@ -1572,7 +1572,7 @@ function getAmerenUrgencyHTML_EN(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: #dc3545; padding: 40px 20px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px; filter: brightness(0) invert(1);">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px; filter: brightness(0) invert(1);">
     <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ URGENT: Tax Credit Deadline Approaching</h1>
     <p style="color: #ffcdd2; margin: 10px 0 0 0; font-size: 16px;">Limited installation slots available for Ameren territory</p>
   </div>
@@ -1659,7 +1659,7 @@ function getAmerenFinalHTML_EN(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 24px;">{{firstName}}, This is My Last Email</h1>
     <p style="color: #87CEEB; margin: 10px 0 0 0; font-size: 16px;">Unless you want to save $90,000+</p>
   </div>
@@ -1752,7 +1752,7 @@ function getAmerenWelcomeHTML_ES(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 26px;">{{firstName}}, Clientes de Ameren Ahorran $2,847/Año</h1>
     <p style="color: #87CEEB; margin: 10px 0 0 0; font-size: 16px;">Tu cotización personalizada está lista</p>
   </div>
@@ -1800,7 +1800,7 @@ function getAmerenWelcomeHTML_ES(): string {
     </p>
   </div>
   <div style="background: #1a1a2e; padding: 30px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 35px; margin-bottom: 15px; filter: brightness(0) invert(1);">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 150px; height: auto; margin-bottom: 15px; filter: brightness(0) invert(1);">
     <p style="color: #aaa; font-size: 12px; margin: 10px 0;">
       Quantum Solar Enterprises LLC | 511 W 5th St, Tilton, IL 61833 | Restaurando la fe en la energía solar residencial
     </p>
@@ -1848,7 +1848,7 @@ function getAmerenROIHTML_ES(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 24px;">{{firstName}}, Esto es lo que Cuestan 25 Años de Facturas de Ameren</h1>
   </div>
   <div style="background: white; padding: 40px 30px;">
@@ -1969,7 +1969,7 @@ function getAmerenSocialProofHTML_ES(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 24px;">312 Clientes de Ameren Cambiaron Este Mes</h1>
     <p style="color: #87CEEB; margin: 10px 0 0 0; font-size: 16px;">Esto es lo que están diciendo...</p>
   </div>
@@ -2058,7 +2058,7 @@ function getAmerenUrgencyHTML_ES(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: #dc3545; padding: 40px 20px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px; filter: brightness(0) invert(1);">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px; filter: brightness(0) invert(1);">
     <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ URGENTE: Fecha Límite del Crédito Fiscal Se Acerca</h1>
     <p style="color: #ffcdd2; margin: 10px 0 0 0; font-size: 16px;">Cupos de instalación limitados para territorio de Ameren</p>
   </div>
@@ -2145,7 +2145,7 @@ function getAmerenFinalHTML_ES(): string {
 </head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background-color: #f8f9fa;">
   <div style="background: linear-gradient(135deg, #0089D0 0%, #005A8C 100%); padding: 40px 20px; text-align: center;">
-    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="height: 50px; margin-bottom: 20px;">
+    <img src="https://crm.quantumsolar.us/quantum-solar-logo.png" alt="Quantum Solar" style="width: 200px; height: auto; margin-bottom: 20px;">
     <h1 style="color: white; margin: 0; font-size: 24px;">{{firstName}}, Este es Mi Último Correo</h1>
     <p style="color: #87CEEB; margin: 10px 0 0 0; font-size: 16px;">A menos que quieras ahorrar $90,000+</p>
   </div>
