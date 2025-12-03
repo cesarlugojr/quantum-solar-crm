@@ -87,25 +87,35 @@ async function fetchLeadData(leadType: string, leadId: string): Promise<LeadData
 function substituteVariables(template: string, leadData: LeadData, variables: string[]): string {
   let result = template;
 
-  // Substitute each variable
-  variables.forEach(variable => {
-    const value = leadData[variable];
-    const displayValue = value !== undefined && value !== null ? String(value) : '';
-
-    // Replace all occurrences of {{variable}}
-    const regex = new RegExp(`{{${variable}}}`, 'g');
-    result = result.replace(regex, displayValue);
-  });
-
-  // Also handle common variations
+  // Common mappings from camelCase template variables to snake_case database fields
   const commonMappings: Record<string, string> = {
     'firstName': leadData.first_name || '',
     'lastName': leadData.last_name || '',
     'electricBill': String(leadData.average_monthly_bill || ''),
     'estimatedSavings': String(leadData.estimated_savings || ''),
     'utilityCompany': leadData.utility_company || '',
+    'zipCode': leadData.zip_code || '',
   };
 
+  // Substitute each variable - check commonMappings first, then fall back to direct property access
+  variables.forEach(variable => {
+    let displayValue: string;
+
+    if (variable in commonMappings) {
+      // Use the mapped value for camelCase variables
+      displayValue = commonMappings[variable];
+    } else {
+      // Fall back to direct property access for snake_case or other variables
+      const value = leadData[variable];
+      displayValue = value !== undefined && value !== null ? String(value) : '';
+    }
+
+    // Replace all occurrences of {{variable}}
+    const regex = new RegExp(`{{${variable}}}`, 'g');
+    result = result.replace(regex, displayValue);
+  });
+
+  // Also apply commonMappings for any remaining unmapped variables not in the variables array
   Object.entries(commonMappings).forEach(([key, value]) => {
     const regex = new RegExp(`{{${key}}}`, 'g');
     result = result.replace(regex, value);
