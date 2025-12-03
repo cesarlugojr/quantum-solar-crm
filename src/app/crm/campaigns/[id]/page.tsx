@@ -1,11 +1,12 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Mail, Users, Play, Pause, CheckCircle, UserCheck, UserX } from 'lucide-react';
+import { ArrowLeft, Mail, Users, Play, Pause, CheckCircle, UserCheck, UserX, Send } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getCampaignById, getCampaignEnrollments, getCampaignStats } from '../../actions';
 import { EmailSequenceCard } from '@/components/crm/EmailSequenceCard';
+import { ResendEmailDialog } from '@/components/crm/ResendEmailDialog';
 
 export const metadata: Metadata = {
   title: 'Campaign Details | Quantum Solar CRM',
@@ -80,6 +81,23 @@ export default async function CampaignDetailPage({ params }: CampaignDetailPageP
           )}
         </div>
         <div className="flex items-center gap-3">
+          <ResendEmailDialog
+            campaignId={campaign.id}
+            campaignName={campaign.name}
+            sequences={sequences.map((seq: any) => ({
+              id: seq.id,
+              sequence_order: seq.sequence_order,
+              subject_template: seq.subject_template,
+              email_templates: seq.email_templates,
+            }))}
+            enrolledLeads={enrollments.map((enrollment) => ({
+              id: enrollment.id,
+              lead_id: enrollment.lead_id,
+              email_address: enrollment.email_address,
+              lead_name: enrollment.lead_name,
+              status: enrollment.status,
+            }))}
+          />
           <Badge
             variant="outline"
             className={`${campaign.active ? 'text-green-400 border-green-500 bg-green-500/20' : 'text-gray-400 border-gray-500 bg-gray-500/20'} text-lg px-4 py-2`}
