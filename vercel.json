@@ -10,12 +10,6 @@
       "schedule": "*/15 * * * *"
     }
   ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/"
-    }
-  ],
   "headers": [
     {
       "source": "/api/(.*)",
