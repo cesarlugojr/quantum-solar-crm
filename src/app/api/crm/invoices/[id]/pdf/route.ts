@@ -5,6 +5,7 @@
  * GET /api/crm/invoices/[id]/pdf
  */
 
+import React from 'react';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
@@ -67,7 +68,7 @@ export async function GET(
 
     // Generate PDF
     const pdfBuffer = await renderToBuffer(
-      InvoicePDFTemplate({
+      React.createElement(InvoicePDFTemplate, {
         invoice: invoice as Invoice,
         lineItems: (lineItems || []) as InvoiceLineItem[],
         client,
