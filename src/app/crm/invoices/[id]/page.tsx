@@ -20,6 +20,7 @@ import {
   RefreshCw,
   AlertCircle,
   ExternalLink,
+  HardDrive,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +66,7 @@ export default function InvoiceDetailPage() {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [qboConnected, setQboConnected] = useState(false);
   const [syncingToQBO, setSyncingToQBO] = useState(false);
+  const [uploadingToDrive, setUploadingToDrive] = useState(false);
 
   const fetchInvoice = useCallback(async () => {
     try {
@@ -126,6 +128,32 @@ export default function InvoiceDetailPage() {
       alert(error instanceof Error ? error.message : 'Failed to sync to QuickBooks');
     } finally {
       setSyncingToQBO(false);
+    }
+  };
+
+  const handleUploadToDrive = async () => {
+    if (!invoice) return;
+
+    try {
+      setUploadingToDrive(true);
+      const response = await fetch(`/api/crm/invoices/${invoice.id}/upload-drive`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload to Google Drive');
+      }
+
+      // Refresh invoice to get updated Drive info
+      await fetchInvoice();
+      alert('PDF uploaded to Google Drive successfully!');
+    } catch (error) {
+      console.error('Error uploading to Drive:', error);
+      alert(error instanceof Error ? error.message : 'Failed to upload to Google Drive');
+    } finally {
+      setUploadingToDrive(false);
     }
   };
 
@@ -372,6 +400,39 @@ export default function InvoiceDetailPage() {
               )}
               Sync to QuickBooks
             </Button>
+          )}
+
+          {/* Save to Drive Button */}
+          {invoice.status !== 'void' && (
+            invoice.google_drive_url ? (
+              <a
+                href={invoice.google_drive_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  variant="outline"
+                  className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                >
+                  <HardDrive className="h-4 w-4 mr-2" />
+                  View in Drive
+                </Button>
+              </a>
+            ) : (
+              <Button
+                onClick={handleUploadToDrive}
+                disabled={uploadingToDrive}
+                variant="outline"
+                className="border-gray-700 text-gray-300"
+              >
+                {uploadingToDrive ? (
+                  <HardDrive className="h-4 w-4 mr-2 animate-pulse" />
+                ) : (
+                  <HardDrive className="h-4 w-4 mr-2" />
+                )}
+                Save to Drive
+              </Button>
+            )
           )}
 
           {invoice.status !== 'void' && invoice.status !== 'paid' && (
@@ -742,6 +803,61 @@ export default function InvoiceDetailPage() {
                       Connect in Settings
                     </Button>
                   </Link>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Google Drive Section */}
+          <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <HardDrive className="h-5 w-5" />
+              Google Drive
+            </h2>
+            <div className="space-y-3">
+              {invoice.google_drive_url ? (
+                <>
+                  <div className="flex items-center gap-2 text-blue-400">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm">Uploaded</span>
+                  </div>
+                  <a
+                    href={invoice.google_drive_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                    >
+                      <ExternalLink className="h-3 w-3 mr-2" />
+                      Open in Drive
+                    </Button>
+                  </a>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Clock className="h-4 w-4" />
+                    <span className="text-sm">Not Uploaded</span>
+                  </div>
+                  {invoice.status !== 'void' && (
+                    <Button
+                      onClick={handleUploadToDrive}
+                      disabled={uploadingToDrive}
+                      size="sm"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-2"
+                    >
+                      {uploadingToDrive ? (
+                        <HardDrive className="h-3 w-3 mr-2 animate-pulse" />
+                      ) : (
+                        <HardDrive className="h-3 w-3 mr-2" />
+                      )}
+                      Save to Drive
+                    </Button>
+                  )}
                 </>
               )}
             </div>

@@ -217,11 +217,33 @@ Features:
 - [x] QuickBooks sync status section in sidebar
 - [x] Sync logging to database
 
+### 18. Google Drive PDF Storage ✅
+**Files:**
+- `src/lib/google-drive.ts` - Google Drive API integration
+- `src/app/api/crm/invoices/[id]/upload-drive/route.ts` - Upload PDF endpoint
+- `src/app/crm/invoices/[id]/page.tsx` - Updated with Drive button and status
+- `supabase/migrations/20251205000003_add_google_drive_columns.sql` - DB migration
+
+Features:
+- [x] Google Drive service account integration
+- [x] PDF upload to shared "Invoices" folder
+- [x] "Save to Drive" button on invoice detail page
+- [x] "View in Drive" button when already uploaded
+- [x] Google Drive status section in sidebar
+- [x] Auto-replace if re-uploading same invoice
+
+**Credentials (in .env.local):**
+```
+GOOGLE_INVOICE_CLIENT_EMAIL=qs-crm-uploads@quantum-solar-invoices.iam.gserviceaccount.com
+GOOGLE_INVOICE_PRIVATE_KEY=...
+GOOGLE_INVOICE_FOLDER_ID=0AGxJaLjk6sKgUk9PVA
+```
+
 ---
 
 ## Pending Tasks
 
-### 18. Payment Sync (Future Enhancement)
+### 19. Payment Sync (Future Enhancement)
 - [ ] Sync payment status bidirectionally
 - [ ] Webhook for QBO payment updates
 
@@ -283,20 +305,23 @@ Features:
 ```
 supabase/migrations/
 ├── 20251205000001_create_invoice_system.sql  [NEW] ✅
-└── 20251205000002_create_quickbooks_tokens.sql  [NEW] ✅
+├── 20251205000002_create_quickbooks_tokens.sql  [NEW] ✅
+└── 20251205000003_add_google_drive_columns.sql  [NEW] ✅
 
 src/types/
 └── crm.ts  [MODIFIED - added invoice types] ✅
 
 src/lib/
-└── quickbooks.ts  [NEW - QBO API integration] ✅
+├── quickbooks.ts  [NEW - QBO API integration] ✅
+└── google-drive.ts  [NEW - Google Drive API] ✅
 
 src/app/api/crm/
 ├── invoices/
 │   ├── route.ts  [NEW] ✅
 │   └── [id]/
 │       ├── pdf/route.ts  [NEW] ✅
-│       └── sync-qbo/route.ts  [NEW] ✅
+│       ├── sync-qbo/route.ts  [NEW] ✅
+│       └── upload-drive/route.ts  [NEW] ✅
 ├── clients/
 │   └── route.ts  [NEW] ✅
 └── design-analyzer/

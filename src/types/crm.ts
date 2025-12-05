@@ -974,6 +974,10 @@ export interface Invoice {
   quickbooks_synced_at?: string;
   quickbooks_error?: string;
 
+  // Google Drive
+  google_drive_file_id?: string;
+  google_drive_url?: string;
+
   // Notes
   notes?: string;
   internal_notes?: string;
