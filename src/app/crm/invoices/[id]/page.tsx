@@ -123,6 +123,57 @@ export default function InvoiceDetailPage() {
     setPaymentDialogOpen(false);
   };
 
+  const handleDownloadPDF = async () => {
+    if (!invoice) return;
+
+    try {
+      const response = await fetch(`/api/crm/invoices/${invoice.id}/pdf`);
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Invoice_${invoice.invoice_number}${invoice.gpin ? `_${invoice.gpin}` : ''}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF. Please try again.');
+    }
+  };
+
+  const handlePrint = async () => {
+    if (!invoice) return;
+
+    try {
+      const response = await fetch(`/api/crm/invoices/${invoice.id}/pdf`);
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Open in new window for printing
+      const printWindow = window.open(url, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    } catch (error) {
+      console.error('Error printing PDF:', error);
+      alert('Failed to print. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -243,12 +294,20 @@ export default function InvoiceDetailPage() {
             </Dialog>
           )}
 
-          <Button variant="outline" className="border-gray-700 text-gray-300">
+          <Button
+            variant="outline"
+            onClick={handleDownloadPDF}
+            className="border-gray-700 text-gray-300"
+          >
             <Download className="h-4 w-4 mr-2" />
             Download PDF
           </Button>
 
-          <Button variant="outline" className="border-gray-700 text-gray-300">
+          <Button
+            variant="outline"
+            onClick={handlePrint}
+            className="border-gray-700 text-gray-300"
+          >
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>

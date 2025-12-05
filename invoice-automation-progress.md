@@ -163,16 +163,25 @@ Features:
 2. Copy contents of `supabase/migrations/20251205000001_create_invoice_system.sql`
 3. Execute the SQL
 
+### 15. PDF Generation ✅
+**Files:**
+- `src/components/crm/InvoicePDFTemplate.tsx` - PDF template component
+- `src/app/api/crm/invoices/[id]/pdf/route.ts` - PDF generation endpoint
+
+Features:
+- [x] PDF template with Quantum Solar branding
+- [x] Company info and invoice header
+- [x] Bill To / Project Details sections
+- [x] Line items table with quantities and rates
+- [x] Totals section (subtotal, discounts, tax, total, paid, balance)
+- [x] Payment information section
+- [x] Notes section
+- [x] Download endpoint: `GET /api/crm/invoices/[id]/pdf`
+- [x] Download and Print buttons on invoice detail page
+
 ---
 
 ## Pending Tasks
-
-### 15. PDF Generation
-- [ ] Create PDF template matching existing invoice format
-- [ ] Quantum Solar branding/logo
-- [ ] Line item table with quantities and rates
-- [ ] Total/payment/balance sections
-- [ ] Download endpoint: `GET /api/crm/invoices/[id]/pdf`
 
 ### 16. QuickBooks OAuth Integration
 - [ ] OAuth flow for QBO connection
@@ -277,10 +286,14 @@ src/app/crm/
 src/components/crm/
 ├── ProjectInvoicesSection.tsx  [NEW] ✅
 ├── DesignUploader.tsx  [NEW] ✅
+├── InvoicePDFTemplate.tsx  [NEW] ✅
 └── EditProjectDialog.tsx  [MODIFIED - added design upload] ✅
 
 src/app/crm/
 └── actions.ts  [MODIFIED - added createProject function] ✅
+
+package.json
+└── Added @react-pdf/renderer for PDF generation ✅
 ```
 
 ---
@@ -294,7 +307,8 @@ src/app/crm/
 5. ~~Add invoice section to project details page~~ ✅
 6. ~~Add design/planset PDF upload feature~~ ✅
 7. ~~Create project creation page with design upload~~ ✅
-8. Run database migration (via Supabase Dashboard SQL Editor)
-9. Test full flow with GoodPWR sample data
-10. Implement PDF generation
-11. Add QuickBooks integration
+8. ~~Implement PDF generation~~ ✅
+9. Run database migration (via Supabase Dashboard SQL Editor)
+10. Test full flow with GoodPWR sample data
+11. Add QuickBooks OAuth integration
+12. Add invoice sync to QuickBooks
