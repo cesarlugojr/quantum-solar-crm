@@ -5,12 +5,10 @@
  * GET /api/crm/invoices/[id]/pdf
  */
 
-import React from 'react';
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
-import { renderToBuffer } from '@react-pdf/renderer';
-import { InvoicePDFTemplate } from '@/components/crm/InvoicePDFTemplate';
+import { generateInvoicePDF } from '@/lib/invoice-pdf';
 import type { Invoice, InvoiceLineItem, Client } from '@/types/crm';
 
 // GET - Generate PDF for invoice
@@ -67,23 +65,17 @@ export async function GET(
     }
 
     // Generate PDF
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfBuffer = await renderToBuffer(
-      React.createElement(InvoicePDFTemplate, {
-        invoice: invoice as Invoice,
-        lineItems: (lineItems || []) as InvoiceLineItem[],
-        client,
-      }) as any
+    const pdfBuffer = await generateInvoicePDF(
+      invoice as Invoice,
+      (lineItems || []) as InvoiceLineItem[],
+      client
     );
 
     // Create filename
     const filename = `Invoice_${invoice.invoice_number}${invoice.gpin ? `_${invoice.gpin}` : ''}.pdf`;
 
-    // Convert to Uint8Array for NextResponse
-    const uint8Array = new Uint8Array(pdfBuffer);
-
     // Return PDF as response
-    return new NextResponse(uint8Array, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

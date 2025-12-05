@@ -34,6 +34,7 @@ import {
   type FinancingType,
 } from '@/types/crm';
 import { DesignUploader, type ExtractedDesignData } from './DesignUploader';
+import { ProjectFileUploader } from './ProjectFileUploader';
 
 interface EditProjectDialogProps {
   project: ProjectV2;
@@ -65,6 +66,20 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
   const [hasMpu, setHasMpu] = useState(project.has_mpu || false);
   const [hasBattery, setHasBattery] = useState(project.has_battery || false);
   const [hasTrench, setHasTrench] = useState(project.has_trench || false);
+  const [hasGroundMount, setHasGroundMount] = useState(project.has_ground_mount || false);
+  const [hasEvCharger, setHasEvCharger] = useState(project.has_ev_charger || false);
+  const [trenchLengthFt, setTrenchLengthFt] = useState(project.trench_length_ft?.toString() || '');
+  const [batteryCount, setBatteryCount] = useState(project.battery_count?.toString() || '');
+  const [hasSteepPitch, setHasSteepPitch] = useState(project.has_steep_pitch || false);
+  const [hasFlatRoof, setHasFlatRoof] = useState(project.has_flat_roof || false);
+  const [hasTileRoof, setHasTileRoof] = useState(project.has_tile_roof || false);
+  const [hasMetalRoof, setHasMetalRoof] = useState(project.has_metal_roof || false);
+  const [hasThreeStory, setHasThreeStory] = useState(project.has_three_story || false);
+  const [moduleWattage, setModuleWattage] = useState(project.module_wattage?.toString() || '');
+  const [moduleModel, setModuleModel] = useState(project.module_model || '');
+  const [arrayCount, setArrayCount] = useState(project.array_count?.toString() || '');
+  const [roofType, setRoofType] = useState(project.roof_type || '');
+  const [roofSections, setRoofSections] = useState(project.roof_sections || []);
   const [ahjJurisdiction, setAhjJurisdiction] = useState(project.ahj_jurisdiction || '');
   const [permitNumber, setPermitNumber] = useState(project.permit_number || '');
   const [utilityAccountNumber, setUtilityAccountNumber] = useState(project.utility_account_number || '');
@@ -87,12 +102,34 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
     if (data.zip_code) setZipCode(data.zip_code);
     if (data.system_size_kw) setSystemSizeKw(data.system_size_kw.toString());
     if (data.module_count) setPanelCount(data.module_count.toString());
+    if (data.module_wattage) setModuleWattage(data.module_wattage.toString());
+    if (data.module_model) setModuleModel(data.module_model);
     if (data.inverter_model) setInverterType(data.inverter_model);
+    if (data.array_count) setArrayCount(data.array_count.toString());
+    if (data.roof_type) setRoofType(data.roof_type);
+
+    // Set roof sections from extracted data
+    if (data.roof_sections && data.roof_sections.length > 0) {
+      setRoofSections(data.roof_sections);
+    }
+
+    // Set permitting and utility info
+    if (data.ahj_jurisdiction) setAhjJurisdiction(data.ahj_jurisdiction);
+    if (data.utility_company) setUtilityAccountNumber(data.utility_company); // Store in utility field for now
 
     // Set adders from extracted data
     if (data.adders.has_mpu !== undefined) setHasMpu(data.adders.has_mpu);
     if (data.adders.has_battery !== undefined) setHasBattery(data.adders.has_battery);
     if (data.adders.has_trench !== undefined) setHasTrench(data.adders.has_trench);
+    if (data.adders.has_ground_mount !== undefined) setHasGroundMount(data.adders.has_ground_mount);
+    if (data.adders.has_ev_charger !== undefined) setHasEvCharger(data.adders.has_ev_charger);
+    if (data.adders.trench_length_ft) setTrenchLengthFt(data.adders.trench_length_ft.toString());
+    if (data.adders.battery_count) setBatteryCount(data.adders.battery_count.toString());
+    if (data.adders.has_steep_pitch !== undefined) setHasSteepPitch(data.adders.has_steep_pitch);
+    if (data.adders.has_flat_roof !== undefined) setHasFlatRoof(data.adders.has_flat_roof);
+    if (data.adders.has_tile_roof !== undefined) setHasTileRoof(data.adders.has_tile_roof);
+    if (data.adders.has_metal_roof !== undefined) setHasMetalRoof(data.adders.has_metal_roof);
+    if (data.adders.has_three_story !== undefined) setHasThreeStory(data.adders.has_three_story);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,7 +147,12 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
         zip_code: zipCode,
         system_size_kw: systemSizeKw ? parseFloat(systemSizeKw) : undefined,
         panel_count: panelCount ? parseInt(panelCount) : undefined,
+        module_wattage: moduleWattage ? parseInt(moduleWattage) : undefined,
+        module_model: moduleModel || undefined,
         inverter_type: inverterType || undefined,
+        array_count: arrayCount ? parseInt(arrayCount) : undefined,
+        roof_type: roofType || undefined,
+        roof_sections: roofSections.length > 0 ? roofSections : undefined,
         revenue_type: revenueType,
         estimated_revenue: estimatedRevenue ? parseFloat(estimatedRevenue) : undefined,
         actual_revenue: actualRevenue ? parseFloat(actualRevenue) : undefined,
@@ -120,6 +162,15 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
         has_mpu: hasMpu,
         has_battery: hasBattery,
         has_trench: hasTrench,
+        has_ground_mount: hasGroundMount,
+        has_ev_charger: hasEvCharger,
+        trench_length_ft: trenchLengthFt ? parseInt(trenchLengthFt) : undefined,
+        battery_count: batteryCount ? parseInt(batteryCount) : undefined,
+        has_steep_pitch: hasSteepPitch,
+        has_flat_roof: hasFlatRoof,
+        has_tile_roof: hasTileRoof,
+        has_metal_roof: hasMetalRoof,
+        has_three_story: hasThreeStory,
         ahj_jurisdiction: ahjJurisdiction || undefined,
         permit_number: permitNumber || undefined,
         utility_account_number: utilityAccountNumber || undefined,
@@ -166,8 +217,20 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
               </p>
               <DesignUploader
                 onDataExtracted={handleDesignDataExtracted}
+                projectId={project.id}
                 compact
               />
+            </div>
+
+            {/* Project Documents Upload */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-gray-300 border-b border-gray-700 pb-2">
+                Project Documents
+              </h3>
+              <p className="text-sm text-gray-400">
+                Upload project documents to Google Drive (utility bills, permits, inspection reports, etc.)
+              </p>
+              <ProjectFileUploader projectId={project.id} />
             </div>
 
             {/* Customer Information */}
@@ -274,17 +337,102 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="moduleWattage" className="text-gray-300">Module Wattage (W)</Label>
+                  <Input
+                    id="moduleWattage"
+                    type="number"
+                    value={moduleWattage}
+                    onChange={(e) => setModuleWattage(e.target.value)}
+                    className="bg-gray-800 border-gray-600 text-white"
+                    placeholder="e.g., 400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="arrayCount" className="text-gray-300">Array Count</Label>
+                  <Input
+                    id="arrayCount"
+                    type="number"
+                    value={arrayCount}
+                    onChange={(e) => setArrayCount(e.target.value)}
+                    className="bg-gray-800 border-gray-600 text-white"
+                    placeholder="Number of arrays"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="moduleModel" className="text-gray-300">Module Model</Label>
+                  <Input
+                    id="moduleModel"
+                    value={moduleModel}
+                    onChange={(e) => setModuleModel(e.target.value)}
+                    className="bg-gray-800 border-gray-600 text-white"
+                    placeholder="e.g., REC Alpha Pure 400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="inverterType" className="text-gray-300">Inverter Type</Label>
+                  <Input
+                    id="inverterType"
+                    value={inverterType}
+                    onChange={(e) => setInverterType(e.target.value)}
+                    className="bg-gray-800 border-gray-600 text-white"
+                    placeholder="e.g., Enphase IQ8+"
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="inverterType" className="text-gray-300">Inverter Type</Label>
-                <Input
-                  id="inverterType"
-                  value={inverterType}
-                  onChange={(e) => setInverterType(e.target.value)}
-                  className="bg-gray-800 border-gray-600 text-white"
-                  placeholder="e.g., Enphase IQ8+"
-                />
+                <Label htmlFor="roofType" className="text-gray-300">Roof Type</Label>
+                <Select value={roofType || '_none'} onValueChange={(value) => setRoofType(value === '_none' ? '' : value)}>
+                  <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
+                    <SelectValue placeholder="Select roof type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectItem value="_none">Not Set</SelectItem>
+                    <SelectItem value="composition">Composition/Asphalt Shingle</SelectItem>
+                    <SelectItem value="tile">Tile</SelectItem>
+                    <SelectItem value="metal">Metal</SelectItem>
+                    <SelectItem value="flat">Flat/Low-Slope</SelectItem>
+                    <SelectItem value="shake">Wood Shake</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
+            {/* Roof Sections (from Claude Vision extraction) */}
+            {roofSections.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-gray-300 border-b border-gray-700 pb-2">
+                  Roof Sections ({roofSections.length})
+                </h3>
+                <div className="space-y-2">
+                  {roofSections.map((section, idx) => (
+                    <div key={idx} className="flex items-center gap-4 bg-gray-800 p-3 rounded text-sm">
+                      <span className="text-white font-medium min-w-[100px]">{section.section_name}</span>
+                      <span className="text-gray-300">{section.panel_count} panels</span>
+                      {section.pitch_ratio && (
+                        <span className="text-blue-400">Pitch: {section.pitch_ratio}</span>
+                      )}
+                      {section.pitch_degrees && (
+                        <span className="text-blue-400">({section.pitch_degrees}°)</span>
+                      )}
+                      {section.orientation && (
+                        <span className="text-yellow-400">Facing: {section.orientation}</span>
+                      )}
+                      {section.azimuth && (
+                        <span className="text-gray-500">({section.azimuth}°)</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500">
+                  Extracted from design PDF. Upload a new PDF to update.
+                </p>
+              </div>
+            )}
 
             {/* Project Adders */}
             <div className="space-y-4">
@@ -296,6 +444,7 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
                     id="hasMpu"
                     checked={hasMpu}
                     onCheckedChange={setHasMpu}
+                    className="data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-green-600"
                   />
                 </div>
                 <div className="flex items-center justify-between space-x-2 bg-gray-800 p-3 rounded">
@@ -304,6 +453,7 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
                     id="hasBattery"
                     checked={hasBattery}
                     onCheckedChange={setHasBattery}
+                    className="data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-green-600"
                   />
                 </div>
                 <div className="flex items-center justify-between space-x-2 bg-gray-800 p-3 rounded">
@@ -312,6 +462,101 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
                     id="hasTrench"
                     checked={hasTrench}
                     onCheckedChange={setHasTrench}
+                    className="data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-green-600"
+                  />
+                </div>
+                <div className="flex items-center justify-between space-x-2 bg-gray-800 p-3 rounded">
+                  <Label htmlFor="hasGroundMount" className="text-gray-300">Ground Mount</Label>
+                  <Switch
+                    id="hasGroundMount"
+                    checked={hasGroundMount}
+                    onCheckedChange={setHasGroundMount}
+                    className="data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-green-600"
+                  />
+                </div>
+                <div className="flex items-center justify-between space-x-2 bg-gray-800 p-3 rounded">
+                  <Label htmlFor="hasEvCharger" className="text-gray-300">EV Charger</Label>
+                  <Switch
+                    id="hasEvCharger"
+                    checked={hasEvCharger}
+                    onCheckedChange={setHasEvCharger}
+                    className="data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-green-600"
+                  />
+                </div>
+                <div className="flex items-center justify-between space-x-2 bg-gray-800 p-3 rounded">
+                  <Label htmlFor="hasThreeStory" className="text-gray-300">3-Story</Label>
+                  <Switch
+                    id="hasThreeStory"
+                    checked={hasThreeStory}
+                    onCheckedChange={setHasThreeStory}
+                    className="data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-green-600"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="batteryCount" className="text-gray-300">Battery Count</Label>
+                  <Input
+                    id="batteryCount"
+                    type="number"
+                    value={batteryCount}
+                    onChange={(e) => setBatteryCount(e.target.value)}
+                    className="bg-gray-800 border-gray-600 text-white"
+                    placeholder="Number of batteries"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="trenchLengthFt" className="text-gray-300">Trench Length (ft)</Label>
+                  <Input
+                    id="trenchLengthFt"
+                    type="number"
+                    value={trenchLengthFt}
+                    onChange={(e) => setTrenchLengthFt(e.target.value)}
+                    className="bg-gray-800 border-gray-600 text-white"
+                    placeholder="Feet of trenching"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Roof Characteristics */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-gray-300 border-b border-gray-700 pb-2">Roof Characteristics</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="flex items-center justify-between space-x-2 bg-gray-800 p-3 rounded">
+                  <Label htmlFor="hasSteepPitch" className="text-gray-300">Steep Pitch</Label>
+                  <Switch
+                    id="hasSteepPitch"
+                    checked={hasSteepPitch}
+                    onCheckedChange={setHasSteepPitch}
+                    className="data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-green-600"
+                  />
+                </div>
+                <div className="flex items-center justify-between space-x-2 bg-gray-800 p-3 rounded">
+                  <Label htmlFor="hasFlatRoof" className="text-gray-300">Flat Roof</Label>
+                  <Switch
+                    id="hasFlatRoof"
+                    checked={hasFlatRoof}
+                    onCheckedChange={setHasFlatRoof}
+                    className="data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-green-600"
+                  />
+                </div>
+                <div className="flex items-center justify-between space-x-2 bg-gray-800 p-3 rounded">
+                  <Label htmlFor="hasTileRoof" className="text-gray-300">Tile Roof</Label>
+                  <Switch
+                    id="hasTileRoof"
+                    checked={hasTileRoof}
+                    onCheckedChange={setHasTileRoof}
+                    className="data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-green-600"
+                  />
+                </div>
+                <div className="flex items-center justify-between space-x-2 bg-gray-800 p-3 rounded">
+                  <Label htmlFor="hasMetalRoof" className="text-gray-300">Metal Roof</Label>
+                  <Switch
+                    id="hasMetalRoof"
+                    checked={hasMetalRoof}
+                    onCheckedChange={setHasMetalRoof}
+                    className="data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-green-600"
                   />
                 </div>
               </div>
@@ -426,7 +671,7 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="utilityAccountNumber" className="text-gray-300">Utility Account Number</Label>
+                <Label htmlFor="utilityAccountNumber" className="text-gray-300">Utility</Label>
                 <Input
                   id="utilityAccountNumber"
                   value={utilityAccountNumber}

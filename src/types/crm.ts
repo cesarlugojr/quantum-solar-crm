@@ -371,6 +371,16 @@ export type RevenueType = 'goodpwr' | 'self_gen';
 
 export type FinancingType = 'cash' | 'loan' | 'lease' | 'ppa';
 
+// Roof section data extracted from solar design/planset PDFs
+export interface RoofSection {
+  section_name: string;      // e.g., "Array 1", "South Roof", "Garage"
+  panel_count: number;       // Number of panels on this section
+  pitch_degrees?: number;    // Roof pitch in degrees (0-90)
+  pitch_ratio?: string;      // Roof pitch as ratio (e.g., "4:12", "7:12")
+  azimuth?: number;          // Direction roof faces (0-360, 180 = south)
+  orientation?: string;      // Cardinal direction (N, NE, E, SE, S, SW, W, NW)
+}
+
 export interface MilestonePayment {
   name: string;
   percentage: number;
@@ -388,6 +398,7 @@ export interface ProjectV2 {
   // Customer information
   customer_name: string;
   address: string;
+  street_address?: string;  // Explicit street address (address may contain full combined address)
   city?: string;
   state?: string;
   zip_code?: string;
@@ -398,8 +409,15 @@ export interface ProjectV2 {
   // System details
   system_size_kw: number;
   panel_count?: number;
+  module_wattage?: number;
+  module_model?: string;
   inverter_type?: string;
+  array_count?: number;
+  roof_type?: string;
   battery_included?: boolean;
+
+  // Detailed roof section info (from Claude Vision extraction)
+  roof_sections?: RoofSection[];
 
   // Revenue tracking
   revenue_type: RevenueType;
@@ -422,6 +440,18 @@ export interface ProjectV2 {
   has_mpu?: boolean;
   has_battery?: boolean;
   has_trench?: boolean;
+  has_ground_mount?: boolean;
+  has_ev_charger?: boolean;
+  trench_length_ft?: number;
+  battery_count?: number;
+
+  // Roof-specific adders
+  has_steep_pitch?: boolean;
+  has_flat_roof?: boolean;
+  has_tile_roof?: boolean;
+  has_metal_roof?: boolean;
+  has_three_story?: boolean;
+
   adders?: Array<{ type: string; cost?: number; notes?: string }>;
 
   // Permitting and compliance
@@ -466,6 +496,15 @@ export interface ProjectV2 {
   // Additional information
   project_notes?: string;
   tags?: string[];
+
+  // Design PDF Google Drive storage
+  design_pdf_drive_id?: string;
+  design_pdf_drive_url?: string;
+  design_pdf_filename?: string;
+
+  // Project Google Drive folder (contains all project files)
+  google_drive_folder_id?: string;
+  google_drive_folder_url?: string;
 }
 
 // Project stage labels for display

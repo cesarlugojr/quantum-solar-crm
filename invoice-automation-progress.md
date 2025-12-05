@@ -128,6 +128,15 @@ Features:
 - [x] Loading/success/error states
 - [x] Extracted data display
 - [x] Detected adders badges
+- [x] **Claude Vision integration for AI-powered PDF analysis**
+
+**Claude Vision Extraction:**
+- Customer name, address (street, city, state, zip)
+- System size (kW), module count, wattage per panel
+- Module model, inverter model
+- Array count, roof type
+- Adders: MPU, ground mount, trench (with length), battery (with count)
+- EV charger, steep pitch, flat/tile/metal roof, three-story
 
 ### 12. Project Creation Page ✅
 **File:** `src/app/crm/projects/new/page.tsx`
@@ -359,7 +368,8 @@ src/app/crm/
 └── actions.ts  [MODIFIED - added createProject function] ✅
 
 package.json
-└── Added @react-pdf/renderer for PDF generation ✅
+├── Added @react-pdf/renderer for PDF generation ✅
+└── Added @anthropic-ai/sdk for Claude Vision PDF analysis ✅
 ```
 
 ---

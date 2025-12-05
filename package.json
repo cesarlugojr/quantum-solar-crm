@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.1",
     "@clerk/nextjs": "^6.31.4",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -35,6 +36,8 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "googleapis": "^156.0.0",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.460.0",
     "next": "^16.0.7",
     "react": "^18.3.1",

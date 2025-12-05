@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, MapPin, User, Calendar, Zap, DollarSign, Battery, Wrench, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, User, Calendar, Zap, DollarSign, Battery, Wrench, CheckCircle, Home, Car, Mountain } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -76,9 +76,11 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
             <p className="text-gray-400 text-sm">System Size</p>
           </div>
           <p className="text-2xl font-bold text-white">{project.system_size_kw || 0} kW</p>
-          {project.panel_count && (
-            <p className="text-sm text-gray-500 mt-1">{project.panel_count} panels</p>
-          )}
+          <div className="text-sm text-gray-500 mt-1 space-y-0.5">
+            {project.panel_count && <p>{project.panel_count} panels</p>}
+            {project.module_wattage && <p>{project.module_wattage}W modules</p>}
+            {project.array_count && <p>{project.array_count} array{project.array_count > 1 ? 's' : ''}</p>}
+          </div>
         </div>
 
         <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
@@ -264,16 +266,122 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               </div>
               <div className={`flex items-center gap-3 ${project.has_battery ? 'text-white' : 'text-gray-500'}`}>
                 <Battery className={`h-5 w-5 ${project.has_battery ? 'text-green-400' : ''}`} />
-                <span>Battery Storage</span>
+                <span>Battery Storage{project.battery_count ? ` (${project.battery_count})` : ''}</span>
                 {project.has_battery && <CheckCircle className="h-4 w-4 text-green-400 ml-auto" />}
               </div>
               <div className={`flex items-center gap-3 ${project.has_trench ? 'text-white' : 'text-gray-500'}`}>
                 <Wrench className={`h-5 w-5 ${project.has_trench ? 'text-yellow-400' : ''}`} />
-                <span>Trench Work</span>
+                <span>Trench Work{project.trench_length_ft ? ` (${project.trench_length_ft} ft)` : ''}</span>
                 {project.has_trench && <CheckCircle className="h-4 w-4 text-green-400 ml-auto" />}
+              </div>
+              <div className={`flex items-center gap-3 ${project.has_ground_mount ? 'text-white' : 'text-gray-500'}`}>
+                <Mountain className={`h-5 w-5 ${project.has_ground_mount ? 'text-emerald-400' : ''}`} />
+                <span>Ground Mount</span>
+                {project.has_ground_mount && <CheckCircle className="h-4 w-4 text-green-400 ml-auto" />}
+              </div>
+              <div className={`flex items-center gap-3 ${project.has_ev_charger ? 'text-white' : 'text-gray-500'}`}>
+                <Car className={`h-5 w-5 ${project.has_ev_charger ? 'text-blue-400' : ''}`} />
+                <span>EV Charger</span>
+                {project.has_ev_charger && <CheckCircle className="h-4 w-4 text-green-400 ml-auto" />}
+              </div>
+              <div className={`flex items-center gap-3 ${project.has_three_story ? 'text-white' : 'text-gray-500'}`}>
+                <Home className={`h-5 w-5 ${project.has_three_story ? 'text-purple-400' : ''}`} />
+                <span>3-Story Building</span>
+                {project.has_three_story && <CheckCircle className="h-4 w-4 text-green-400 ml-auto" />}
               </div>
             </div>
           </div>
+
+          {/* Roof Sections */}
+          {project.roof_sections && Array.isArray(project.roof_sections) && project.roof_sections.length > 0 && (
+            <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+              <h3 className="font-semibold text-white mb-4">
+                Roof Sections ({project.roof_sections.length})
+              </h3>
+              <div className="space-y-3">
+                {project.roof_sections.map((section: { section_name: string; panel_count: number; pitch_degrees?: number; pitch_ratio?: string; orientation?: string; azimuth?: number }, idx: number) => (
+                  <div key={idx} className="bg-gray-800/50 p-3 rounded-lg">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-white font-medium">{section.section_name}</span>
+                      <span className="text-gray-400 text-sm">{section.panel_count} panels</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      {section.pitch_ratio && (
+                        <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded">
+                          Pitch: {section.pitch_ratio}
+                        </span>
+                      )}
+                      {section.pitch_degrees && (
+                        <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded">
+                          {section.pitch_degrees}°
+                        </span>
+                      )}
+                      {section.orientation && (
+                        <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded">
+                          {section.orientation}
+                        </span>
+                      )}
+                      {section.azimuth && (
+                        <span className="px-2 py-0.5 bg-gray-500/20 text-gray-400 rounded">
+                          {section.azimuth}° azimuth
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Roof Details */}
+          {(project.roof_type || project.has_steep_pitch || project.has_flat_roof || project.has_tile_roof || project.has_metal_roof) && (
+            <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+              <h3 className="font-semibold text-white mb-4">Roof Details</h3>
+              <div className="space-y-3">
+                {project.roof_type && (
+                  <div>
+                    <p className="text-sm text-gray-400">Roof Type</p>
+                    <p className="text-white capitalize">{project.roof_type}</p>
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {project.has_steep_pitch && (
+                    <Badge variant="outline" className="text-orange-400 border-orange-400">Steep Pitch</Badge>
+                  )}
+                  {project.has_flat_roof && (
+                    <Badge variant="outline" className="text-blue-400 border-blue-400">Flat Roof</Badge>
+                  )}
+                  {project.has_tile_roof && (
+                    <Badge variant="outline" className="text-amber-400 border-amber-400">Tile Roof</Badge>
+                  )}
+                  {project.has_metal_roof && (
+                    <Badge variant="outline" className="text-gray-400 border-gray-400">Metal Roof</Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Equipment Details */}
+          {(project.module_model || project.inverter_type) && (
+            <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+              <h3 className="font-semibold text-white mb-4">Equipment</h3>
+              <div className="space-y-3">
+                {project.module_model && (
+                  <div>
+                    <p className="text-sm text-gray-400">Module Model</p>
+                    <p className="text-white">{project.module_model}</p>
+                  </div>
+                )}
+                {project.inverter_type && (
+                  <div>
+                    <p className="text-sm text-gray-400">Inverter</p>
+                    <p className="text-white">{project.inverter_type}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Assignment */}
           <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">

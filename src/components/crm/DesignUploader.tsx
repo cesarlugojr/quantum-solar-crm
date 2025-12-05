@@ -1,8 +1,18 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, FileText, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, FileText, X, Loader2, CheckCircle, AlertCircle, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+// Types for roof section data
+export interface RoofSectionData {
+  section_name: string;
+  panel_count: number;
+  pitch_degrees?: number;
+  pitch_ratio?: string;
+  azimuth?: number;
+  orientation?: string;
+}
 
 // Types for extracted design data
 export interface ExtractedDesignData {
@@ -19,6 +29,13 @@ export interface ExtractedDesignData {
   inverter_model?: string;
   array_count?: number;
   roof_type?: string;
+
+  // Detailed roof section info
+  roof_sections?: RoofSectionData[];
+
+  // Permitting and utility info
+  ahj_jurisdiction?: string;
+  utility_company?: string;
 
   // Adders detected
   adders: {
@@ -39,6 +56,10 @@ export interface ExtractedDesignData {
   // Metadata
   raw_text?: string;
   confidence_score?: number;
+
+  // Google Drive upload info (if uploaded)
+  drive_file_id?: string;
+  drive_url?: string;
 }
 
 interface DesignUploaderProps {
@@ -46,6 +67,7 @@ interface DesignUploaderProps {
   onError?: (error: string) => void;
   className?: string;
   compact?: boolean;
+  projectId?: string; // If provided, PDF will be uploaded to Google Drive
 }
 
 export function DesignUploader({
@@ -53,6 +75,7 @@ export function DesignUploader({
   onError,
   className = '',
   compact = false,
+  projectId,
 }: DesignUploaderProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -84,6 +107,10 @@ export function DesignUploader({
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
+      // If projectId is provided, the API will also upload to Google Drive
+      if (projectId) {
+        formData.append('projectId', projectId);
+      }
 
       const response = await fetch('/api/crm/design-analyzer', {
         method: 'POST',
@@ -92,6 +119,11 @@ export function DesignUploader({
 
       if (!response.ok) {
         const errorData = await response.json();
+        // Check for rate limit error and provide helpful message
+        if (response.status === 429 || errorData.isRateLimit) {
+          const minutes = errorData.retryAfter ? Math.ceil(errorData.retryAfter / 60) : 1;
+          throw new Error(`Rate limit reached. Please wait ${minutes} minute${minutes > 1 ? 's' : ''} before uploading another PDF.`);
+        }
         throw new Error(errorData.error || 'Failed to analyze design PDF');
       }
 
@@ -110,7 +142,7 @@ export function DesignUploader({
     } finally {
       setUploading(false);
     }
-  }, [onDataExtracted, onError]);
+  }, [onDataExtracted, onError, projectId]);
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -278,9 +310,22 @@ export function DesignUploader({
 
       {extractedData && !error && (
         <div className="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-          <div className="flex items-center gap-2 mb-3">
-            <CheckCircle className="h-5 w-5 text-green-400" />
-            <p className="text-green-400 font-medium">Data Extracted Successfully</p>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-400" />
+              <p className="text-green-400 font-medium">Data Extracted Successfully</p>
+            </div>
+            {extractedData.drive_url && (
+              <a
+                href={extractedData.drive_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300"
+              >
+                <Cloud className="h-4 w-4" />
+                View in Drive
+              </a>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4 text-sm">
@@ -321,6 +366,30 @@ export function DesignUploader({
               </div>
             )}
           </div>
+
+          {/* Roof Sections */}
+          {extractedData.roof_sections && extractedData.roof_sections.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-700">
+              <p className="text-gray-400 text-sm mb-2">Roof Sections ({extractedData.roof_sections.length}):</p>
+              <div className="space-y-2">
+                {extractedData.roof_sections.map((section, idx) => (
+                  <div key={idx} className="flex items-center gap-3 text-sm bg-gray-800/50 p-2 rounded">
+                    <span className="text-white font-medium">{section.section_name}</span>
+                    <span className="text-gray-400">{section.panel_count} panels</span>
+                    {section.pitch_ratio && (
+                      <span className="text-blue-300">{section.pitch_ratio}</span>
+                    )}
+                    {section.pitch_degrees && (
+                      <span className="text-blue-300">({section.pitch_degrees}°)</span>
+                    )}
+                    {section.orientation && (
+                      <span className="text-yellow-300">{section.orientation}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Detected Adders */}
           {Object.values(extractedData.adders).some(Boolean) && (
