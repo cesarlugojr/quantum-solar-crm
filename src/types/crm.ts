@@ -792,3 +792,296 @@ export function getProjectStageColor(stage: ProjectStage): string {
   if (stage <= 10) return 'bg-orange-500';  // Installation
   return 'bg-green-500';  // Inspection & PTO
 }
+
+// ============================================
+// INVOICE TYPES
+// ============================================
+
+export type InvoiceStatus = 'draft' | 'sent' | 'viewed' | 'partial' | 'paid' | 'overdue' | 'void';
+
+export type InvoiceMilestone = 'M1' | 'M2' | 'FULL';
+
+export type AdderUnit = 'watt' | 'foot' | 'flat' | 'module' | 'each';
+
+export interface AdderConfig {
+  rate: number;
+  unit: AdderUnit;
+  description: string;
+}
+
+export interface RateSheetAdders {
+  ground_mount_over_8kw: AdderConfig;
+  ground_mount_under_8kw: AdderConfig;
+  trench_softscape: AdderConfig;
+  trench_concrete: AdderConfig;
+  pest_control: AdderConfig;
+  metal_roof: AdderConfig;
+  flat_roof: AdderConfig;
+  tile_roof: AdderConfig;
+  steep_pitch: AdderConfig;
+  three_story: AdderConfig;
+  home_surge_protector: AdderConfig;
+  production_meter: AdderConfig;
+  derate_breaker: AdderConfig;
+  main_breaker_addition: AdderConfig;
+  new_subpanel: AdderConfig;
+  main_panel_upgrade: AdderConfig;
+  main_panel_upgrade_stucco: AdderConfig;
+  main_panel_upgrade_norcal: AdderConfig;
+  meter_swap: AdderConfig;
+  rma_meter_collar: AdderConfig;
+  span_smart_panel: AdderConfig;
+  ev_charger: AdderConfig;
+  whole_home_battery_first: AdderConfig;
+  whole_home_battery_additional: AdderConfig;
+  backup_battery_first: AdderConfig;
+  backup_battery_additional: AdderConfig;
+  smart_thermostat: AdderConfig;
+  small_system_under_4kw: AdderConfig;
+  over_4_arrays: AdderConfig;
+  remove_reinstall: AdderConfig;
+  remove_discard: AdderConfig;
+  onsite_cancellation: AdderConfig;
+  pre_design_cancellation: AdderConfig;
+  post_design_cancellation: AdderConfig;
+  [key: string]: AdderConfig;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  company_name?: string;
+  email?: string;
+  phone?: string;
+
+  // Billing address
+  billing_street?: string;
+  billing_city?: string;
+  billing_state?: string;
+  billing_zip?: string;
+  billing_country?: string;
+
+  // Shipping address
+  shipping_street?: string;
+  shipping_city?: string;
+  shipping_state?: string;
+  shipping_zip?: string;
+  shipping_country?: string;
+
+  // Payment defaults
+  default_terms?: string;
+  default_payment_method?: string;
+
+  // QuickBooks
+  quickbooks_customer_id?: string;
+  quickbooks_sync_enabled?: boolean;
+
+  active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface RateSheet {
+  id: string;
+  client_id: string;
+  name: string;
+  description?: string;
+
+  // Base rates (per watt)
+  base_rate_option_a: number;  // With site survey ($0.53)
+  base_rate_option_b: number;  // Without site survey ($0.50)
+
+  // Milestone split
+  m1_percentage: number;  // 65%
+  m2_percentage: number;  // 35%
+
+  // Bonus rates (per watt)
+  early_schedule_bonus: number;  // $0.05
+  inspection_bonus: number;      // $0.02
+
+  // Adders configuration
+  adders: RateSheetAdders;
+
+  // Effective dates
+  effective_from: string;
+  effective_to?: string;
+
+  active: boolean;
+  created_at: string;
+  updated_at?: string;
+
+  // Relationships
+  client?: Client;
+}
+
+export interface InvoiceLineItem {
+  id: string;
+  invoice_id: string;
+  line_number: number;
+
+  item_type: string;
+  description: string;
+
+  quantity: number;
+  unit?: string;
+  unit_rate: number;
+  amount: number;
+
+  adder_key?: string;
+
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface Invoice {
+  id: string;
+  invoice_number: number;
+
+  client_id?: string;
+  project_id?: string;
+  gpin?: string;
+
+  // Project details
+  project_name?: string;
+  project_address?: string;
+  system_size_watts?: number;
+
+  // Dates
+  invoice_date: string;
+  due_date?: string;
+
+  // Terms
+  terms?: string;
+  payment_method?: string;
+
+  // Milestone
+  milestone?: InvoiceMilestone;
+
+  // Totals
+  subtotal: number;
+  tax_amount: number;
+  discount_amount: number;
+  total_amount: number;
+  amount_paid: number;
+  balance_due: number;
+
+  // Status
+  status: InvoiceStatus;
+
+  // QuickBooks
+  quickbooks_invoice_id?: string;
+  quickbooks_sync_status?: 'pending' | 'synced' | 'error';
+  quickbooks_synced_at?: string;
+  quickbooks_error?: string;
+
+  // Notes
+  notes?: string;
+  internal_notes?: string;
+
+  // Timestamps
+  created_at: string;
+  updated_at?: string;
+  sent_at?: string;
+  paid_at?: string;
+  voided_at?: string;
+  created_by?: string;
+
+  // Relationships (populated on fetch)
+  client?: Client;
+  line_items?: InvoiceLineItem[];
+}
+
+export interface InvoicePayment {
+  id: string;
+  invoice_id: string;
+  amount: number;
+  payment_date: string;
+  payment_method?: string;
+  reference_number?: string;
+  quickbooks_payment_id?: string;
+  notes?: string;
+  created_at: string;
+  created_by?: string;
+}
+
+// Invoice form data for creation/editing
+export interface InvoiceFormData {
+  client_id: string;
+  project_id?: string;
+  gpin?: string;
+  project_name: string;
+  project_address: string;
+  system_size_watts: number;
+  invoice_date: string;
+  terms?: string;
+  payment_method?: string;
+  milestone: InvoiceMilestone;
+  notes?: string;
+  line_items: Omit<InvoiceLineItem, 'id' | 'invoice_id' | 'created_at' | 'updated_at'>[];
+}
+
+// Invoice status labels and colors
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  draft: 'Draft',
+  sent: 'Sent',
+  viewed: 'Viewed',
+  partial: 'Partially Paid',
+  paid: 'Paid',
+  overdue: 'Overdue',
+  void: 'Void',
+};
+
+export const INVOICE_STATUS_COLORS: Record<InvoiceStatus, string> = {
+  draft: 'bg-gray-500',
+  sent: 'bg-blue-500',
+  viewed: 'bg-purple-500',
+  partial: 'bg-yellow-500',
+  paid: 'bg-green-500',
+  overdue: 'bg-red-500',
+  void: 'bg-gray-400',
+};
+
+// Helper function to get invoice status color
+export function getInvoiceStatusColor(status: InvoiceStatus): string {
+  return INVOICE_STATUS_COLORS[status] || 'bg-gray-500';
+}
+
+// Helper function to calculate labor amount for a milestone
+export function calculateLaborAmount(
+  systemSizeWatts: number,
+  ratePerWatt: number,
+  milestone: InvoiceMilestone,
+  m1Percentage: number = 65,
+  m2Percentage: number = 35
+): number {
+  const totalLabor = systemSizeWatts * ratePerWatt;
+
+  switch (milestone) {
+    case 'M1':
+      return totalLabor * (m1Percentage / 100);
+    case 'M2':
+      return totalLabor * (m2Percentage / 100);
+    case 'FULL':
+    default:
+      return totalLabor;
+  }
+}
+
+// Helper function to calculate adder amount
+export function calculateAdderAmount(
+  adder: AdderConfig,
+  quantity: number,
+  systemSizeWatts?: number
+): number {
+  switch (adder.unit) {
+    case 'watt':
+      return (systemSizeWatts || 0) * adder.rate;
+    case 'foot':
+    case 'module':
+    case 'each':
+      return quantity * adder.rate;
+    case 'flat':
+    default:
+      return adder.rate;
+  }
+}

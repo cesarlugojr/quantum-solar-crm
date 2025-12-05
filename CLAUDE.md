@@ -84,7 +84,7 @@ The CRM platform serves as the **internal operations hub** for Quantum Solar's t
 ### Development Tools
 
 - **Build Tool**: Turbopack (development) / Webpack (production)
-- **Package Manager**: npm with package-lock.json
+- **Package Manager**: bun (ALWAYS use bun instead of npm for all commands)
 - **Code Quality**: ESLint + TypeScript strict mode
 - **Type Checking**: TypeScript with strict configuration
 
@@ -197,10 +197,10 @@ src/
 
 ```bash
 # Development (AVAILABLE)
-npm run dev                  # Start development server with Turbopack
-npm run build               # Build for production
-npm run start               # Start production server
-npm run lint                # Run ESLint (MUST pass before committing)
+bun run dev                  # Start development server with Turbopack
+bun run build               # Build for production
+bun run start               # Start production server
+bun run lint                # Run ESLint (MUST pass before committing)
 
 # Testing (⚠️ NOT CONFIGURED - Scripts need to be added to package.json)
 # To add testing, update package.json with these scripts:
@@ -214,8 +214,8 @@ npm run lint                # Run ESLint (MUST pass before committing)
 
 **CRITICAL**: Before any commit, you MUST run and ensure these pass:
 
-1. `npm run lint` - Zero ESLint errors allowed
-2. TypeScript compilation must succeed (`npm run build` or `npx tsc --noEmit`)
+1. `bun run lint` - Zero ESLint errors allowed
+2. TypeScript compilation must succeed (`bun run build` or `bunx tsc --noEmit`)
 3. No console.error or console.warn in production code (except in error handlers)
 4. Test CRM functionality manually (automated tests to be added)
 
@@ -1104,7 +1104,7 @@ const syncLeadsFromMainWebsite = async () => {
 
 **CRITICAL REMINDERS:**
 
-1. **ALWAYS** run `npm run lint` before committing - zero errors allowed
+1. **ALWAYS** run `bun run lint` before committing - zero errors allowed
 2. **ALWAYS** use Clerk authentication for all CRM routes
 3. **ALWAYS** use TypeScript strict mode - no `any` types
 4. **ALWAYS** implement proper error boundaries and loading states
