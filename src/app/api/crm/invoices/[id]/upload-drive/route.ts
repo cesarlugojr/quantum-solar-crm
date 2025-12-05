@@ -76,12 +76,13 @@ export async function POST(
     }
 
     // Generate PDF
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdfBuffer = await renderToBuffer(
       React.createElement(InvoicePDFTemplate, {
         invoice: invoice as Invoice,
         lineItems: (lineItems || []) as InvoiceLineItem[],
         client,
-      })
+      }) as any
     );
 
     // Upload to Google Drive

@@ -67,19 +67,23 @@ export async function GET(
     }
 
     // Generate PDF
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdfBuffer = await renderToBuffer(
       React.createElement(InvoicePDFTemplate, {
         invoice: invoice as Invoice,
         lineItems: (lineItems || []) as InvoiceLineItem[],
         client,
-      })
+      }) as any
     );
 
     // Create filename
     const filename = `Invoice_${invoice.invoice_number}${invoice.gpin ? `_${invoice.gpin}` : ''}.pdf`;
 
+    // Convert to Uint8Array for NextResponse
+    const uint8Array = new Uint8Array(pdfBuffer);
+
     // Return PDF as response
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(uint8Array, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

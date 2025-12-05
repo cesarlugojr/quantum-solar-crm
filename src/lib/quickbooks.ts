@@ -318,7 +318,7 @@ export interface QBOInvoiceData {
 }
 
 export const createQBOInvoice = async (invoiceData: QBOInvoiceData) => {
-  return qboApiRequest<{ Invoice: Record<string, unknown> }>('/invoice', {
+  return qboApiRequest<{ Invoice: QBOInvoiceResponse }>('/invoice', {
     method: 'POST',
     body: JSON.stringify(invoiceData),
   });

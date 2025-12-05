@@ -5,18 +5,8 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from '@react-pdf/renderer';
 import type { Invoice, InvoiceLineItem, Client } from '@/types/crm';
-
-// Register fonts (using default fonts for now)
-Font.register({
-  family: 'Helvetica',
-  fonts: [
-    { src: 'Helvetica' },
-    { src: 'Helvetica-Bold', fontWeight: 'bold' },
-  ],
-});
 
 // Styles matching Quantum Solar branding
 const styles = StyleSheet.create({
@@ -266,12 +256,10 @@ export const InvoicePDFTemplate: React.FC<InvoicePDFProps> = ({
         <View style={styles.header}>
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>Quantum Solar</Text>
-            <Text style={styles.companyAddress}>
-              Quantum Solar Enterprises LLC{'\n'}
-              Illinois, USA{'\n'}
-              cesar@quantumsolar.us{'\n'}
-              quantumsolar.us
-            </Text>
+            <Text style={styles.companyAddress}>Quantum Solar Enterprises LLC</Text>
+            <Text style={styles.companyAddress}>Illinois, USA</Text>
+            <Text style={styles.companyAddress}>cesar@quantumsolar.us</Text>
+            <Text style={styles.companyAddress}>quantumsolar.us</Text>
           </View>
           <View style={styles.invoiceTitle}>
             <Text style={styles.invoiceTitleText}>INVOICE</Text>
@@ -294,22 +282,36 @@ export const InvoicePDFTemplate: React.FC<InvoicePDFProps> = ({
           <View style={styles.clientBox}>
             <Text style={styles.boxLabel}>Bill To</Text>
             <Text style={styles.boxText}>
-              {client?.company_name || client?.name || 'Client'}{'\n'}
-              {client?.billing_street && `${client.billing_street}\n`}
-              {client?.billing_city && client?.billing_state && client?.billing_zip &&
-                `${client.billing_city}, ${client.billing_state} ${client.billing_zip}`}
+              {client?.company_name || client?.name || 'Client'}
             </Text>
+            {client?.billing_street && (
+              <Text style={styles.boxText}>{client.billing_street}</Text>
+            )}
+            {client?.billing_city && client?.billing_state && client?.billing_zip && (
+              <Text style={styles.boxText}>
+                {client.billing_city}, {client.billing_state} {client.billing_zip}
+              </Text>
+            )}
           </View>
           <View style={styles.projectBox}>
             <Text style={styles.boxLabel}>Project Details</Text>
-            <Text style={styles.boxText}>
-              {invoice.gpin && `GPIN: ${invoice.gpin}\n`}
-              {invoice.project_name && `Customer: ${invoice.project_name}\n`}
-              {invoice.project_address && `Address: ${invoice.project_address}\n`}
-              {invoice.system_size_watts &&
-                `System: ${(invoice.system_size_watts / 1000).toFixed(2)} kW (${invoice.system_size_watts.toLocaleString()} W)\n`}
-              {invoice.milestone && `Milestone: ${invoice.milestone}`}
-            </Text>
+            {invoice.gpin && (
+              <Text style={styles.boxText}>GPIN: {invoice.gpin}</Text>
+            )}
+            {invoice.project_name && (
+              <Text style={styles.boxText}>Customer: {invoice.project_name}</Text>
+            )}
+            {invoice.project_address && (
+              <Text style={styles.boxText}>Address: {invoice.project_address}</Text>
+            )}
+            {invoice.system_size_watts && (
+              <Text style={styles.boxText}>
+                System: {(invoice.system_size_watts / 1000).toFixed(2)} kW ({invoice.system_size_watts.toLocaleString()} W)
+              </Text>
+            )}
+            {invoice.milestone && (
+              <Text style={styles.boxText}>Milestone: {invoice.milestone}</Text>
+            )}
           </View>
         </View>
 
@@ -388,7 +390,7 @@ export const InvoicePDFTemplate: React.FC<InvoicePDFProps> = ({
               </Text>
             </View>
             {invoice.amount_paid > 0 && (
-              <>
+              <View>
                 <View style={styles.totalRow}>
                   <Text style={styles.totalLabel}>Amount Paid</Text>
                   <Text style={styles.totalValue}>
@@ -401,7 +403,7 @@ export const InvoicePDFTemplate: React.FC<InvoicePDFProps> = ({
                     {formatCurrency(invoice.balance_due || 0)}
                   </Text>
                 </View>
-              </>
+              </View>
             )}
           </View>
         </View>
@@ -410,10 +412,16 @@ export const InvoicePDFTemplate: React.FC<InvoicePDFProps> = ({
         <View style={styles.paymentSection}>
           <Text style={styles.paymentTitle}>Payment Information</Text>
           <Text style={styles.paymentInfo}>
-            <Text style={styles.paymentInfoBold}>Terms:</Text> {invoice.terms || 'Net 10'}{'\n'}
-            <Text style={styles.paymentInfoBold}>Payment Method:</Text> {invoice.payment_method || 'Bank Transfer'}{'\n'}
-            {'\n'}
-            Please make payment within the terms specified above.{'\n'}
+            Terms: {invoice.terms || 'Net 10'}
+          </Text>
+          <Text style={styles.paymentInfo}>
+            Payment Method: {invoice.payment_method || 'Bank Transfer'}
+          </Text>
+          <Text style={styles.paymentInfo}> </Text>
+          <Text style={styles.paymentInfo}>
+            Please make payment within the terms specified above.
+          </Text>
+          <Text style={styles.paymentInfo}>
             For questions, contact cesar@quantumsolar.us
           </Text>
         </View>
