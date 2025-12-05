@@ -179,25 +179,51 @@ Features:
 - [x] Download endpoint: `GET /api/crm/invoices/[id]/pdf`
 - [x] Download and Print buttons on invoice detail page
 
----
+### 16. QuickBooks OAuth Integration ✅
+**Files:**
+- `src/lib/quickbooks.ts` - QuickBooks API utility library
+- `src/app/api/quickbooks/authorize/route.ts` - OAuth authorization endpoint
+- `src/app/api/quickbooks/callback/route.ts` - OAuth callback handler
+- `src/app/api/quickbooks/status/route.ts` - Connection status endpoint
+- `src/app/api/quickbooks/disconnect/route.ts` - Disconnect endpoint
+- `src/app/crm/settings/page.tsx` - Settings page with QBO integration
+- `supabase/migrations/20251205000002_create_quickbooks_tokens.sql` - Token storage
 
-## Pending Tasks
+Features:
+- [x] OAuth authorization flow
+- [x] Token exchange and storage
+- [x] Automatic token refresh
+- [x] Connection status checking
+- [x] Disconnect functionality
+- [x] Settings page UI for QuickBooks management
 
-### 16. QuickBooks OAuth Integration
-- [ ] OAuth flow for QBO connection
-- [ ] Token storage and refresh
-- [ ] Settings page for QBO configuration
-
-**API Credentials (add to .env.local):**
+**API Credentials (already in .env.local):**
 ```
 QUICKBOOKS_CLIENT_ID=ABeRTMIZTwDh295WD9GdDWOnVmx9OnIKMaBp2fLXlpFXGDRsUf
 QUICKBOOKS_CLIENT_SECRET=ljLQMqTPjpVvB4PK30AlHBD3GMPetcemQAPFnq9k
 ```
 
-### 17. QuickBooks Sync
-- [ ] Create invoice in QBO
-- [ ] Sync payment status
-- [ ] Handle errors and retries
+### 17. QuickBooks Invoice Sync ✅
+**Files:**
+- `src/lib/quickbooks.ts` - Enhanced with customer management and sync logging
+- `src/app/api/crm/invoices/[id]/sync-qbo/route.ts` - Invoice sync endpoint
+- `src/app/crm/invoices/[id]/page.tsx` - Updated with sync button and status
+
+Features:
+- [x] Create invoice in QBO from CRM invoice
+- [x] Find or create customer in QBO
+- [x] Handle errors and retries
+- [x] Add "Sync to QuickBooks" button on invoice detail page
+- [x] QuickBooks sync status section in sidebar
+- [x] Sync logging to database
+
+---
+
+## Pending Tasks
+
+### 18. Payment Sync (Future Enhancement)
+- [ ] Sync payment status bidirectionally
+- [ ] Webhook for QBO payment updates
 
 ---
 
@@ -256,18 +282,31 @@ QUICKBOOKS_CLIENT_SECRET=ljLQMqTPjpVvB4PK30AlHBD3GMPetcemQAPFnq9k
 
 ```
 supabase/migrations/
-└── 20251205000001_create_invoice_system.sql  [NEW] ✅
+├── 20251205000001_create_invoice_system.sql  [NEW] ✅
+└── 20251205000002_create_quickbooks_tokens.sql  [NEW] ✅
 
 src/types/
 └── crm.ts  [MODIFIED - added invoice types] ✅
 
+src/lib/
+└── quickbooks.ts  [NEW - QBO API integration] ✅
+
 src/app/api/crm/
 ├── invoices/
-│   └── route.ts  [NEW] ✅
+│   ├── route.ts  [NEW] ✅
+│   └── [id]/
+│       ├── pdf/route.ts  [NEW] ✅
+│       └── sync-qbo/route.ts  [NEW] ✅
 ├── clients/
 │   └── route.ts  [NEW] ✅
 └── design-analyzer/
     └── route.ts  [NEW] ✅
+
+src/app/api/quickbooks/
+├── authorize/route.ts  [NEW] ✅
+├── callback/route.ts  [NEW] ✅
+├── status/route.ts  [NEW] ✅
+└── disconnect/route.ts  [NEW] ✅
 
 src/app/crm/
 ├── invoices/
@@ -275,7 +314,9 @@ src/app/crm/
 │   ├── new/
 │   │   └── page.tsx  [NEW - with design upload] ✅
 │   └── [id]/
-│       └── page.tsx  [NEW] ✅
+│       └── page.tsx  [NEW - with QBO sync] ✅
+├── settings/
+│   └── page.tsx  [MODIFIED - added QBO connection UI] ✅
 ├── projects/
 │   ├── new/
 │   │   └── page.tsx  [NEW - with design upload] ✅
@@ -310,5 +351,6 @@ package.json
 8. ~~Implement PDF generation~~ ✅
 9. Run database migration (via Supabase Dashboard SQL Editor)
 10. Test full flow with GoodPWR sample data
-11. Add QuickBooks OAuth integration
-12. Add invoice sync to QuickBooks
+11. ~~Add QuickBooks OAuth integration~~ ✅
+12. ~~Add invoice sync to QuickBooks~~ ✅
+13. Deploy to Vercel and test OAuth flow in production

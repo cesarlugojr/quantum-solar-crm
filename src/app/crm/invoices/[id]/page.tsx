@@ -17,6 +17,9 @@ import {
   Building2,
   MapPin,
   Zap,
+  RefreshCw,
+  AlertCircle,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +63,8 @@ export default function InvoiceDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [qboConnected, setQboConnected] = useState(false);
+  const [syncingToQBO, setSyncingToQBO] = useState(false);
 
   const fetchInvoice = useCallback(async () => {
     try {
@@ -82,6 +87,47 @@ export default function InvoiceDetailPage() {
       fetchInvoice();
     }
   }, [params.id, fetchInvoice]);
+
+  // Check QBO connection status
+  useEffect(() => {
+    const checkQBOStatus = async () => {
+      try {
+        const response = await fetch('/api/quickbooks/status');
+        const data = await response.json();
+        setQboConnected(data.connected);
+      } catch (error) {
+        console.error('Error checking QBO status:', error);
+        setQboConnected(false);
+      }
+    };
+    checkQBOStatus();
+  }, []);
+
+  const handleSyncToQBO = async () => {
+    if (!invoice) return;
+
+    try {
+      setSyncingToQBO(true);
+      const response = await fetch(`/api/crm/invoices/${invoice.id}/sync-qbo`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to sync to QuickBooks');
+      }
+
+      // Refresh invoice to get updated sync status
+      await fetchInvoice();
+      alert('Invoice synced to QuickBooks successfully!');
+    } catch (error) {
+      console.error('Error syncing to QBO:', error);
+      alert(error instanceof Error ? error.message : 'Failed to sync to QuickBooks');
+    } finally {
+      setSyncingToQBO(false);
+    }
+  };
 
   const handleAction = async (action: string, extraData?: Record<string, unknown>) => {
     if (!invoice) return;
@@ -311,6 +357,22 @@ export default function InvoiceDetailPage() {
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
+
+          {/* QuickBooks Sync Button */}
+          {qboConnected && !invoice.quickbooks_invoice_id && invoice.status !== 'void' && (
+            <Button
+              onClick={handleSyncToQBO}
+              disabled={syncingToQBO}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {syncingToQBO ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Sync to QuickBooks
+            </Button>
+          )}
 
           {invoice.status !== 'void' && invoice.status !== 'paid' && (
             <Button
@@ -586,6 +648,102 @@ export default function InvoiceDetailPage() {
                 <span className="text-gray-400">Payment Method:</span>
                 <span className="text-white">{invoice.payment_method || 'Bank Transfer'}</span>
               </div>
+            </div>
+          </div>
+
+          {/* QuickBooks Sync Status */}
+          <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <RefreshCw className="h-5 w-5" />
+              QuickBooks
+            </h2>
+            <div className="space-y-3">
+              {invoice.quickbooks_invoice_id ? (
+                <>
+                  <div className="flex items-center gap-2 text-green-400">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm">Synced</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">QBO Invoice ID:</span>
+                    <span className="text-white font-mono">{invoice.quickbooks_invoice_id}</span>
+                  </div>
+                  {invoice.quickbooks_synced_at && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Synced:</span>
+                      <span className="text-white">
+                        {new Date(invoice.quickbooks_synced_at).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </>
+              ) : invoice.quickbooks_sync_status === 'error' ? (
+                <>
+                  <div className="flex items-center gap-2 text-red-400">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-sm">Sync Error</span>
+                  </div>
+                  {invoice.quickbooks_error && (
+                    <p className="text-xs text-red-300 bg-red-500/10 p-2 rounded">
+                      {invoice.quickbooks_error}
+                    </p>
+                  )}
+                  {qboConnected && (
+                    <Button
+                      onClick={handleSyncToQBO}
+                      disabled={syncingToQBO}
+                      size="sm"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white mt-2"
+                    >
+                      {syncingToQBO ? (
+                        <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3 w-3 mr-2" />
+                      )}
+                      Retry Sync
+                    </Button>
+                  )}
+                </>
+              ) : qboConnected ? (
+                <>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Clock className="h-4 w-4" />
+                    <span className="text-sm">Not Synced</span>
+                  </div>
+                  {invoice.status !== 'void' && (
+                    <Button
+                      onClick={handleSyncToQBO}
+                      disabled={syncingToQBO}
+                      size="sm"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white mt-2"
+                    >
+                      {syncingToQBO ? (
+                        <RefreshCw className="h-3 w-3 mr-2 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3 w-3 mr-2" />
+                      )}
+                      Sync to QuickBooks
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-sm">Not Connected</span>
+                  </div>
+                  <Link href="/crm/settings">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-gray-700 text-gray-300 mt-2"
+                    >
+                      <ExternalLink className="h-3 w-3 mr-2" />
+                      Connect in Settings
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
