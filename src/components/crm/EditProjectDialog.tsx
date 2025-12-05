@@ -33,6 +33,7 @@ import {
   type RevenueType,
   type FinancingType,
 } from '@/types/crm';
+import { DesignUploader, type ExtractedDesignData } from './DesignUploader';
 
 interface EditProjectDialogProps {
   project: ProjectV2;
@@ -75,6 +76,24 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
     project.pto_date ? project.pto_date.slice(0, 10) : ''
   );
   const [projectNotes, setProjectNotes] = useState(project.project_notes || '');
+
+  // Handler for design PDF extraction
+  const handleDesignDataExtracted = (data: ExtractedDesignData) => {
+    // Auto-populate form fields from extracted data
+    if (data.customer_name) setCustomerName(data.customer_name);
+    if (data.address) setAddress(data.address);
+    if (data.city) setCity(data.city);
+    if (data.state) setState(data.state);
+    if (data.zip_code) setZipCode(data.zip_code);
+    if (data.system_size_kw) setSystemSizeKw(data.system_size_kw.toString());
+    if (data.module_count) setPanelCount(data.module_count.toString());
+    if (data.inverter_model) setInverterType(data.inverter_model);
+
+    // Set adders from extracted data
+    if (data.adders.has_mpu !== undefined) setHasMpu(data.adders.has_mpu);
+    if (data.adders.has_battery !== undefined) setHasBattery(data.adders.has_battery);
+    if (data.adders.has_trench !== undefined) setHasTrench(data.adders.has_trench);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +156,20 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
+            {/* Design/Planset Upload */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-gray-300 border-b border-gray-700 pb-2">
+                Upload Design/Planset PDF
+              </h3>
+              <p className="text-sm text-gray-400">
+                Upload a design or planset PDF to automatically extract project details.
+              </p>
+              <DesignUploader
+                onDataExtracted={handleDesignDataExtracted}
+                compact
+              />
+            </div>
+
             {/* Customer Information */}
             <div className="space-y-4">
               <h3 className="font-semibold text-gray-300 border-b border-gray-700 pb-2">Customer Information</h3>

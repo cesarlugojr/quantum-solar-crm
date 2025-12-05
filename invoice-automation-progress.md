@@ -80,6 +80,7 @@ Features:
 - [x] Notes field
 - [x] Form submission creates invoice
 - [x] URL params support for pre-filling from project
+- [x] **Design/Planset PDF upload with AI extraction**
 
 ### 7. Navigation Link ✅
 **File:** `src/app/crm/layout.tsx`
@@ -115,45 +116,79 @@ Features:
 - [x] Added ProjectInvoicesSection to project detail page
 - [x] Passes project data for pre-filling invoices
 
+### 11. Design/Planset PDF Upload ✅
+**Files:**
+- `src/components/crm/DesignUploader.tsx` - Reusable upload component
+- `src/app/api/crm/design-analyzer/route.ts` - PDF analysis API endpoint
+
+Features:
+- [x] Drag-and-drop PDF upload
+- [x] Compact and full modes
+- [x] File validation (PDF only, max 20MB)
+- [x] Loading/success/error states
+- [x] Extracted data display
+- [x] Detected adders badges
+
+### 12. Project Creation Page ✅
+**File:** `src/app/crm/projects/new/page.tsx`
+
+Features:
+- [x] Full project creation form
+- [x] **Design/Planset PDF upload with AI extraction**
+- [x] Customer, address, system details sections
+- [x] Project adders (MPU, Battery, Trench) toggles
+- [x] Revenue & financials configuration
+- [x] Pipeline status selection
+- [x] Permitting & compliance fields
+- [x] Assignment & dates
+- [x] Auto-calculation of estimated revenue
+
+### 13. Project Edit Dialog Integration ✅
+**File:** `src/components/crm/EditProjectDialog.tsx`
+
+- [x] Added DesignUploader component
+- [x] Auto-populate form fields from extracted PDF data
+- [x] Supports customer, address, system size, panel count, adders
+
 ---
 
 ## In Progress Tasks
 
-### 11. Database Migration 🔄
-- [ ] Run `supabase db push` to apply invoice system migration
+### 14. Database Migration 🔄
+- [ ] Run migration via Supabase Dashboard SQL Editor (CLI has issues with existing triggers)
+
+**Issue:** Earlier migrations have trigger creation statements that fail if triggers already exist.
+**Solution:** Run the invoice migration SQL directly via Supabase Dashboard:
+1. Go to Supabase Dashboard → SQL Editor
+2. Copy contents of `supabase/migrations/20251205000001_create_invoice_system.sql`
+3. Execute the SQL
 
 ---
 
 ## Pending Tasks
 
-### 12. PDF Generation
+### 15. PDF Generation
 - [ ] Create PDF template matching existing invoice format
 - [ ] Quantum Solar branding/logo
 - [ ] Line item table with quantities and rates
 - [ ] Total/payment/balance sections
 - [ ] Download endpoint: `GET /api/crm/invoices/[id]/pdf`
 
-### 13. QuickBooks OAuth Integration
+### 16. QuickBooks OAuth Integration
 - [ ] OAuth flow for QBO connection
 - [ ] Token storage and refresh
 - [ ] Settings page for QBO configuration
 
-### 14. QuickBooks Sync
+**API Credentials (add to .env.local):**
+```
+QUICKBOOKS_CLIENT_ID=ABeRTMIZTwDh295WD9GdDWOnVmx9OnIKMaBp2fLXlpFXGDRsUf
+QUICKBOOKS_CLIENT_SECRET=ljLQMqTPjpVvB4PK30AlHBD3GMPetcemQAPFnq9k
+```
+
+### 17. QuickBooks Sync
 - [ ] Create invoice in QBO
 - [ ] Sync payment status
 - [ ] Handle errors and retries
-
-### 15. Design/Planset PDF Upload & AI Extraction
-- [ ] PDF upload endpoint
-- [ ] AI extraction of:
-  - Customer name
-  - Address
-  - System size (kW)
-  - Module count
-  - Adders (MPU, ground mount, trench, etc.)
-- [ ] Auto-populate project and invoice forms from planset
-- [ ] Add to project create/edit forms
-- [ ] Add to invoice create form
 
 ---
 
@@ -220,23 +255,32 @@ src/types/
 src/app/api/crm/
 ├── invoices/
 │   └── route.ts  [NEW] ✅
-└── clients/
+├── clients/
+│   └── route.ts  [NEW] ✅
+└── design-analyzer/
     └── route.ts  [NEW] ✅
 
 src/app/crm/
 ├── invoices/
 │   ├── page.tsx  [NEW] ✅
 │   ├── new/
-│   │   └── page.tsx  [NEW] ✅
+│   │   └── page.tsx  [NEW - with design upload] ✅
 │   └── [id]/
 │       └── page.tsx  [NEW] ✅
 ├── projects/
+│   ├── new/
+│   │   └── page.tsx  [NEW - with design upload] ✅
 │   └── [id]/
 │       └── page.tsx  [MODIFIED - added invoices section] ✅
 └── layout.tsx  [MODIFIED - added nav link] ✅
 
 src/components/crm/
-└── ProjectInvoicesSection.tsx  [NEW] ✅
+├── ProjectInvoicesSection.tsx  [NEW] ✅
+├── DesignUploader.tsx  [NEW] ✅
+└── EditProjectDialog.tsx  [MODIFIED - added design upload] ✅
+
+src/app/crm/
+└── actions.ts  [MODIFIED - added createProject function] ✅
 ```
 
 ---
@@ -248,8 +292,9 @@ src/components/crm/
 3. ~~Add sidebar navigation link~~ ✅
 4. ~~Create invoice detail page (`/crm/invoices/[id]`)~~ ✅
 5. ~~Add invoice section to project details page~~ ✅
-6. Run database migration (`supabase db push`)
-7. Test full flow with GoodPWR sample data
-8. Implement PDF generation
-9. Add design/planset PDF upload with AI extraction
-10. Add QuickBooks integration
+6. ~~Add design/planset PDF upload feature~~ ✅
+7. ~~Create project creation page with design upload~~ ✅
+8. Run database migration (via Supabase Dashboard SQL Editor)
+9. Test full flow with GoodPWR sample data
+10. Implement PDF generation
+11. Add QuickBooks integration

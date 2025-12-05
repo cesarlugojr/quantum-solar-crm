@@ -39,6 +39,7 @@ import type {
   AdderConfig,
 } from '@/types/crm';
 import { formatCurrency, calculateLaborAmount, calculateAdderAmount } from '@/types/crm';
+import { DesignUploader, type ExtractedDesignData } from '@/components/crm/DesignUploader';
 
 interface LineItemDraft {
   id: string;
@@ -126,6 +127,74 @@ export default function NewInvoicePage() {
 
   // Calculate system size in watts
   const systemSizeWatts = parseFloat(systemSizeKw || '0') * 1000;
+
+  // Handler for design PDF extraction
+  const handleDesignDataExtracted = (data: ExtractedDesignData) => {
+    // Auto-populate form fields from extracted data
+    if (data.customer_name) setProjectName(data.customer_name);
+    if (data.address) {
+      const fullAddress = [
+        data.address,
+        data.city,
+        data.state,
+        data.zip_code
+      ].filter(Boolean).join(', ');
+      setProjectAddress(fullAddress);
+    }
+    if (data.system_size_kw) {
+      setSystemSizeKw(data.system_size_kw.toString());
+    }
+
+    // Auto-add adders based on extracted data
+    if (rateSheet?.adders) {
+      // Ground mount
+      if (data.adders.has_ground_mount) {
+        const systemWatts = (data.system_size_kw || 0) * 1000;
+        if (systemWatts >= 8000 && rateSheet.adders['ground_mount_over_8kw']) {
+          addAdder('ground_mount_over_8kw');
+        } else if (systemWatts < 8000 && rateSheet.adders['ground_mount_under_8kw']) {
+          addAdder('ground_mount_under_8kw');
+        }
+      }
+
+      // Trench
+      if (data.adders.has_trench && data.adders.trench_length_ft) {
+        if (rateSheet.adders['trench_softscape']) {
+          // Add trench with correct footage
+          const adderConfig = rateSheet.adders['trench_softscape'] as AdderConfig;
+          const amount = calculateAdderAmount(adderConfig, data.adders.trench_length_ft, systemSizeWatts);
+          setLineItems((prev) => [...prev, {
+            id: `adder-trench_softscape-${Date.now()}`,
+            item_type: 'adder',
+            description: adderConfig.description || 'Trench - Softscape',
+            quantity: data.adders.trench_length_ft!,
+            unit: 'ft',
+            unit_rate: adderConfig.rate,
+            amount,
+            adder_key: 'trench_softscape',
+          }]);
+        }
+      }
+
+      // MPU
+      if (data.adders.has_mpu && rateSheet.adders['main_panel_upgrade']) {
+        addAdder('main_panel_upgrade');
+      }
+
+      // Battery
+      if (data.adders.has_battery && data.adders.battery_count) {
+        if (rateSheet.adders['whole_home_battery_first']) {
+          addAdder('whole_home_battery_first');
+        }
+        // Add additional batteries if more than 1
+        if (data.adders.battery_count > 1 && rateSheet.adders['whole_home_battery_additional']) {
+          for (let i = 1; i < data.adders.battery_count; i++) {
+            addAdder('whole_home_battery_additional');
+          }
+        }
+      }
+    }
+  };
 
   // Fetch clients on mount
   useEffect(() => {
@@ -387,6 +456,21 @@ export default function NewInvoicePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Design/Planset Upload */}
+        <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">
+            Upload Design/Planset PDF
+          </h2>
+          <p className="text-sm text-gray-400 mb-4">
+            Upload a design or planset PDF to automatically extract project details and adders.
+            The extracted data will populate the form fields below.
+          </p>
+          <DesignUploader
+            onDataExtracted={handleDesignDataExtracted}
+            compact
+          />
+        </div>
+
         {/* Project Details */}
         <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">

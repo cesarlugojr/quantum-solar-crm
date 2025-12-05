@@ -498,6 +498,30 @@ export async function getProjectById(id: string): Promise<ProjectV2 | null> {
   }
 }
 
+export async function createProject(data: Partial<ProjectV2>): Promise<{ success: boolean; id?: string; error?: string }> {
+  try {
+    const { data: project, error } = await supabase
+      .from('projects')
+      .insert({
+        ...data,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating project:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, id: project.id };
+  } catch (error) {
+    console.error('Error creating project:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
 // ============================================
 // CANDIDATES DATA
 // ============================================
