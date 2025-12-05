@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -85,18 +85,27 @@ const ADDER_OPTIONS = [
 
 export default function NewInvoicePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [saving, setSaving] = useState(false);
 
   // Client and rate sheet data
   const [clients, setClients] = useState<Client[]>([]);
   const [rateSheet, setRateSheet] = useState<RateSheet | null>(null);
 
+  // Pre-fill from URL params
+  const urlProjectName = searchParams.get('project_name') || '';
+  const urlProjectAddress = searchParams.get('project_address') || '';
+  const urlSystemSizeKw = searchParams.get('system_size_kw') || '';
+  const urlProjectId = searchParams.get('project_id') || '';
+  const urlGpin = searchParams.get('gpin') || '';
+
   // Form fields
   const [clientId, setClientId] = useState<string>('');
-  const [gpin, setGpin] = useState('');
-  const [projectName, setProjectName] = useState('');
-  const [projectAddress, setProjectAddress] = useState('');
-  const [systemSizeKw, setSystemSizeKw] = useState<string>('');
+  const [gpin, setGpin] = useState(urlGpin);
+  const [projectId] = useState(urlProjectId);
+  const [projectName, setProjectName] = useState(urlProjectName);
+  const [projectAddress, setProjectAddress] = useState(urlProjectAddress);
+  const [systemSizeKw, setSystemSizeKw] = useState<string>(urlSystemSizeKw);
   const [invoiceDate, setInvoiceDate] = useState(
     new Date().toISOString().split('T')[0]
   );
@@ -328,6 +337,7 @@ export default function NewInvoicePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           client_id: clientId,
+          project_id: projectId || undefined,
           gpin,
           project_name: projectName,
           project_address: projectAddress,

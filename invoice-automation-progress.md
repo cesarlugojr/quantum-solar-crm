@@ -79,45 +79,71 @@ Features:
 - [x] Live invoice preview with calculated totals
 - [x] Notes field
 - [x] Form submission creates invoice
+- [x] URL params support for pre-filling from project
 
 ### 7. Navigation Link ✅
 **File:** `src/app/crm/layout.tsx`
 
 - [x] Added "Invoices" link with FileText icon to sidebar navigation
 
+### 8. Invoice Detail Page ✅
+**File:** `src/app/crm/invoices/[id]/page.tsx`
+
+Features:
+- [x] Display full invoice details
+- [x] Show line items table with totals
+- [x] Client billing info section
+- [x] Dates section (invoice date, due date, sent/paid dates)
+- [x] Payment terms section
+- [x] Activity timeline
+- [x] Action buttons (Mark as Sent, Record Payment, Void)
+- [x] Payment dialog with amount input
+
+### 9. Project Invoices Section ✅
+**File:** `src/components/crm/ProjectInvoicesSection.tsx`
+
+Features:
+- [x] Client component for project details page
+- [x] Shows invoices related to project
+- [x] Summary stats (Invoiced, Paid, Outstanding)
+- [x] Create invoice button with pre-filled project data
+- [x] List of invoices with status badges and view links
+
+### 10. Project Details Integration ✅
+**File:** `src/app/crm/projects/[id]/page.tsx`
+
+- [x] Added ProjectInvoicesSection to project detail page
+- [x] Passes project data for pre-filling invoices
+
 ---
 
 ## In Progress Tasks
 
-### 8. Invoice Detail Page 🔄
-**File:** `src/app/crm/invoices/[id]/page.tsx`
-- [ ] Display full invoice details
-- [ ] Show line items table
-- [ ] Action buttons (Edit, Send, Record Payment, Void)
-- [ ] Payment history
+### 11. Database Migration 🔄
+- [ ] Run `supabase db push` to apply invoice system migration
 
 ---
 
 ## Pending Tasks
 
-### 9. PDF Generation
+### 12. PDF Generation
 - [ ] Create PDF template matching existing invoice format
 - [ ] Quantum Solar branding/logo
 - [ ] Line item table with quantities and rates
 - [ ] Total/payment/balance sections
 - [ ] Download endpoint: `GET /api/crm/invoices/[id]/pdf`
 
-### 10. QuickBooks OAuth Integration
+### 13. QuickBooks OAuth Integration
 - [ ] OAuth flow for QBO connection
 - [ ] Token storage and refresh
 - [ ] Settings page for QBO configuration
 
-### 11. QuickBooks Sync
+### 14. QuickBooks Sync
 - [ ] Create invoice in QBO
 - [ ] Sync payment status
 - [ ] Handle errors and retries
 
-### 12. Planset AI Extraction (Bonus Feature)
+### 15. Design/Planset PDF Upload & AI Extraction
 - [ ] PDF upload endpoint
 - [ ] AI extraction of:
   - Customer name
@@ -125,7 +151,9 @@ Features:
   - System size (kW)
   - Module count
   - Adders (MPU, ground mount, trench, etc.)
-- [ ] Auto-populate invoice form from planset
+- [ ] Auto-populate project and invoice forms from planset
+- [ ] Add to project create/edit forms
+- [ ] Add to invoice create form
 
 ---
 
@@ -184,16 +212,16 @@ Features:
 
 ```
 supabase/migrations/
-└── 20251205000001_create_invoice_system.sql  [NEW]
+└── 20251205000001_create_invoice_system.sql  [NEW] ✅
 
 src/types/
-└── crm.ts  [MODIFIED - added invoice types]
+└── crm.ts  [MODIFIED - added invoice types] ✅
 
 src/app/api/crm/
 ├── invoices/
-│   └── route.ts  [NEW]
+│   └── route.ts  [NEW] ✅
 └── clients/
-    └── route.ts  [NEW]
+    └── route.ts  [NEW] ✅
 
 src/app/crm/
 ├── invoices/
@@ -201,8 +229,14 @@ src/app/crm/
 │   ├── new/
 │   │   └── page.tsx  [NEW] ✅
 │   └── [id]/
-│       └── page.tsx  [PENDING]
+│       └── page.tsx  [NEW] ✅
+├── projects/
+│   └── [id]/
+│       └── page.tsx  [MODIFIED - added invoices section] ✅
 └── layout.tsx  [MODIFIED - added nav link] ✅
+
+src/components/crm/
+└── ProjectInvoicesSection.tsx  [NEW] ✅
 ```
 
 ---
@@ -212,7 +246,10 @@ src/app/crm/
 1. ~~Create invoice list page (`/crm/invoices`)~~ ✅
 2. ~~Create invoice creation page (`/crm/invoices/new`)~~ ✅
 3. ~~Add sidebar navigation link~~ ✅
-4. Create invoice detail page (`/crm/invoices/[id]`)
-5. Test full flow with GoodPWR sample data
-6. Implement PDF generation
-7. Add QuickBooks integration
+4. ~~Create invoice detail page (`/crm/invoices/[id]`)~~ ✅
+5. ~~Add invoice section to project details page~~ ✅
+6. Run database migration (`supabase db push`)
+7. Test full flow with GoodPWR sample data
+8. Implement PDF generation
+9. Add design/planset PDF upload with AI extraction
+10. Add QuickBooks integration

@@ -8,6 +8,7 @@ import { getProjectById } from '../../actions';
 import { formatCurrency, PROJECT_STAGE_LABELS, REVENUE_TYPE_INFO, getProjectStageColor } from '@/types/crm';
 import { EditProjectDialog } from '@/components/crm/EditProjectDialog';
 import { DeleteRecordButton } from '@/components/crm/DeleteRecordButton';
+import { ProjectInvoicesSection } from '@/components/crm/ProjectInvoicesSection';
 
 export const metadata: Metadata = {
   title: 'Project Details | Quantum Solar CRM',
@@ -240,6 +241,14 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               </div>
             </div>
           </div>
+
+          {/* Project Invoices */}
+          <ProjectInvoicesSection
+            projectId={project.id}
+            projectName={project.customer_name}
+            projectAddress={project.address}
+            systemSizeKw={project.system_size_kw}
+          />
         </div>
 
         {/* Sidebar */}
@@ -310,10 +319,10 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 <p className="text-sm text-gray-400">Project ID</p>
                 <p className="text-white text-sm font-mono">{project.id}</p>
               </div>
-              {(project as any).custom_id && (
+              {(project as unknown as { custom_id?: string }).custom_id && (
                 <div>
                   <p className="text-sm text-gray-400">Custom ID</p>
-                  <p className="text-white">{(project as any).custom_id}</p>
+                  <p className="text-white">{(project as unknown as { custom_id?: string }).custom_id}</p>
                 </div>
               )}
             </div>
