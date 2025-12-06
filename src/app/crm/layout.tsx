@@ -17,6 +17,7 @@ import {
   Target,
   BarChart3,
   FileText,
+  DollarSign,
 } from 'lucide-react';
 import { NotificationsDropdown } from '@/components/crm/NotificationsDropdown';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,7 @@ const navigation = [
   { name: 'Opportunities', href: '/crm/opportunities', icon: Target },
   { name: 'Projects', href: '/crm/projects', icon: Building2 },
   { name: 'Invoices', href: '/crm/invoices', icon: FileText },
+  { name: 'Cash Flow', href: '/crm/cashflow', icon: DollarSign },
   { name: 'Reports', href: '/crm/reports', icon: BarChart3 },
   { name: 'Campaigns', href: '/crm/campaigns', icon: Mail },
   { name: 'Candidates', href: '/crm/candidates', icon: Briefcase },

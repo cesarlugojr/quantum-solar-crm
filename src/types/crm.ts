@@ -450,7 +450,18 @@ export interface ProjectV2 {
   has_flat_roof?: boolean;
   has_tile_roof?: boolean;
   has_metal_roof?: boolean;
+  has_comp_shingle?: boolean;
   has_three_story?: boolean;
+  has_two_story?: boolean;
+  has_one_story?: boolean;
+
+  // Additional adders from design extraction
+  has_backup_panel?: boolean;
+  has_backup_gateway?: boolean;
+  has_attic_run?: boolean;
+  has_derate?: boolean;
+  battery_model?: string;  // e.g., "POWERWALL 3", "ENCHARGE 10"
+  utility_company?: string;
 
   adders?: Array<{ type: string; cost?: number; notes?: string }>;
 
@@ -1128,3 +1139,132 @@ export function calculateAdderAmount(
       return adder.rate;
   }
 }
+
+// ============================================
+// CASH FLOW PROJECTION TYPES
+// ============================================
+
+// Frequency types for recurring cash flow items
+export type CashFlowFrequency =
+  | 'daily'
+  | 'weekday_only'  // Mon-Fri
+  | 'weekly'
+  | 'biweekly'
+  | 'monthly'
+  | 'semi_monthly'
+  | 'one_time'
+  | 'manual';
+
+// Category for organizing line items
+export type CashFlowCategory =
+  | 'income'
+  | 'payroll'
+  | 'operations'
+  | 'vehicles'
+  | 'software'
+  | 'financing'
+  | 'materials'
+  | 'marketing'
+  | 'utilities'
+  | 'rent'
+  | 'other';
+
+// Line item interface for recurring transactions
+export interface CashFlowLineItem {
+  id: string;
+  name: string;
+  amount: number;  // Negative = expense, Positive = income
+  frequency: CashFlowFrequency;
+  category: CashFlowCategory;
+  anchor_day?: number;  // Day of month for monthly items (1-31)
+  anchor_date?: string;  // Reference date for weekly/biweekly (ISO date string)
+  second_day?: number;  // For semi-monthly items
+  active: boolean;
+  notes?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+// Manual entry for one-time transactions
+export interface CashFlowManualEntry {
+  id: string;
+  date: string;  // ISO date string
+  name: string;
+  amount: number;
+  category: CashFlowCategory;
+  notes?: string;
+  created_at: string;
+}
+
+// Daily projection row
+export interface CashFlowDailyProjection {
+  date: string;
+  balance: number;
+  dailyChange: number;
+  transactions: Record<string, number>;  // name -> amount
+}
+
+// Projection summary statistics
+export interface CashFlowSummary {
+  startDate: string;
+  endDate: string;
+  startingBalance: number;
+  endingBalance: number;
+  netChange: number;
+  lowestBalance: number;
+  lowestBalanceDate: string;
+  negativeDays: number;
+  firstNegativeDate?: string;
+  firstNegativeBalance?: number;
+  totalIncome: number;
+  totalExpenses: number;
+  weeklyExpenseBreakdown: Record<string, number>;
+}
+
+// Complete projection result
+export interface CashFlowProjectionResult {
+  dailyProjections: CashFlowDailyProjection[];
+  summary: CashFlowSummary;
+}
+
+// Category labels for display
+export const CASH_FLOW_CATEGORY_LABELS: Record<CashFlowCategory, string> = {
+  income: 'Income',
+  payroll: 'Payroll',
+  operations: 'Operations',
+  vehicles: 'Vehicles',
+  software: 'Software',
+  financing: 'Financing',
+  materials: 'Materials',
+  marketing: 'Marketing',
+  utilities: 'Utilities',
+  rent: 'Rent',
+  other: 'Other',
+};
+
+// Frequency labels for display
+export const CASH_FLOW_FREQUENCY_LABELS: Record<CashFlowFrequency, string> = {
+  daily: 'Daily',
+  weekday_only: 'Weekdays Only (Mon-Fri)',
+  weekly: 'Weekly',
+  biweekly: 'Bi-weekly',
+  monthly: 'Monthly',
+  semi_monthly: 'Semi-monthly',
+  one_time: 'One Time',
+  manual: 'Manual Entry',
+};
+
+// Category colors for display
+export const CASH_FLOW_CATEGORY_COLORS: Record<CashFlowCategory, string> = {
+  income: 'bg-green-500',
+  payroll: 'bg-blue-500',
+  operations: 'bg-orange-500',
+  vehicles: 'bg-purple-500',
+  software: 'bg-cyan-500',
+  financing: 'bg-red-500',
+  materials: 'bg-yellow-500',
+  marketing: 'bg-pink-500',
+  utilities: 'bg-indigo-500',
+  rent: 'bg-amber-500',
+  other: 'bg-gray-500',
+};
