@@ -1,0 +1,57 @@
+# Docker Compose for Docling API Server
+#
+# This provides a production-ready Docling API server for document extraction.
+# Use this when you can't install Python/Docling directly on your host.
+#
+# Usage:
+#   docker-compose -f docker-compose.docling.yml up -d
+#
+# Environment variables to set in your .env:
+#   DOCLING_MODE=api
+#   DOCLING_API_ENDPOINT=http://localhost:8080
+
+version: '3.8'
+
+services:
+  docling-api:
+    image: ds4sd/docling:latest
+    container_name: quantum-solar-docling
+    ports:
+      - "8080:8080"
+    environment:
+      - DOCLING_HOST=0.0.0.0
+      - DOCLING_PORT=8080
+      - DOCLING_WORKERS=2
+      - DOCLING_MAX_PAGES=50
+      - DOCLING_ENABLE_OCR=true
+      - DOCLING_ENABLE_TABLE_EXTRACTION=true
+    volumes:
+      # Mount for caching models (optional, improves startup time)
+      - docling-models:/root/.cache/docling
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+volumes:
+  docling-models:
+    driver: local
+
+# Alternative: Build custom Docling image with additional dependencies
+# Uncomment and modify if you need custom models or configurations
+#
+# services:
+#   docling-api:
+#     build:
+#       context: ./docker/docling
+#       dockerfile: Dockerfile
+#     ...

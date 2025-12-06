@@ -365,7 +365,7 @@ export interface OpportunityV2 {
 // PROJECT TYPES
 // ============================================
 
-export type ProjectStage = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+export type ProjectStage = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14;
 
 export type RevenueType = 'goodpwr' | 'self_gen';
 
@@ -532,6 +532,8 @@ export const PROJECT_STAGE_LABELS: Record<ProjectStage, string> = {
   10: 'Installation Complete',
   11: 'Inspection Passed',
   12: 'PTO Granted',
+  13: 'Issue',
+  14: 'Canceled',
 };
 
 // Revenue type display information

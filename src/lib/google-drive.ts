@@ -110,10 +110,18 @@ export const uploadInvoicePDF = async (
   if (existingFiles.data.files && existingFiles.data.files.length > 0) {
     for (const file of existingFiles.data.files) {
       if (file.id) {
-        await drive.files.delete({
-          fileId: file.id,
-          supportsAllDrives: true,
-        });
+        try {
+          await drive.files.delete({
+            fileId: file.id,
+            supportsAllDrives: true,
+          });
+        } catch (deleteError: unknown) {
+          // Ignore 404 errors (file already deleted or doesn't exist)
+          const error = deleteError as { code?: number };
+          if (error.code !== 404) {
+            throw deleteError;
+          }
+        }
       }
     }
   }
@@ -236,10 +244,18 @@ export const uploadDesignPDF = async (
   if (existingFiles.data.files && existingFiles.data.files.length > 0) {
     for (const file of existingFiles.data.files) {
       if (file.id) {
-        await drive.files.delete({
-          fileId: file.id,
-          supportsAllDrives: true,
-        });
+        try {
+          await drive.files.delete({
+            fileId: file.id,
+            supportsAllDrives: true,
+          });
+        } catch (deleteError: unknown) {
+          // Ignore 404 errors (file already deleted or doesn't exist)
+          const error = deleteError as { code?: number };
+          if (error.code !== 404) {
+            throw deleteError;
+          }
+        }
       }
     }
   }
@@ -396,10 +412,18 @@ export const uploadFileToFolder = async (
   if (existingFiles.data.files && existingFiles.data.files.length > 0) {
     for (const file of existingFiles.data.files) {
       if (file.id) {
-        await drive.files.delete({
-          fileId: file.id,
-          supportsAllDrives: true,
-        });
+        try {
+          await drive.files.delete({
+            fileId: file.id,
+            supportsAllDrives: true,
+          });
+        } catch (deleteError: unknown) {
+          // Ignore 404 errors (file already deleted or doesn't exist)
+          const error = deleteError as { code?: number };
+          if (error.code !== 404) {
+            throw deleteError;
+          }
+        }
       }
     }
   }

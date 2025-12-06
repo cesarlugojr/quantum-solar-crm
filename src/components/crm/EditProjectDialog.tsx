@@ -94,6 +94,10 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
 
   // Handler for design PDF extraction
   const handleDesignDataExtracted = (data: ExtractedDesignData) => {
+    // Debug: Log extracted adders to trace MPU detection
+    console.log('[EditProjectDialog] Extracted adders:', data.adders);
+    console.log('[EditProjectDialog] has_mpu value:', data.adders?.has_mpu);
+
     // Auto-populate form fields from extracted data
     if (data.customer_name) setCustomerName(data.customer_name);
     if (data.address) setAddress(data.address);
@@ -118,7 +122,10 @@ export function EditProjectDialog({ project }: EditProjectDialogProps) {
     if (data.utility_company) setUtilityAccountNumber(data.utility_company); // Store in utility field for now
 
     // Set adders from extracted data
-    if (data.adders.has_mpu !== undefined) setHasMpu(data.adders.has_mpu);
+    if (data.adders.has_mpu !== undefined) {
+      console.log('[EditProjectDialog] Setting hasMpu to:', data.adders.has_mpu);
+      setHasMpu(data.adders.has_mpu);
+    }
     if (data.adders.has_battery !== undefined) setHasBattery(data.adders.has_battery);
     if (data.adders.has_trench !== undefined) setHasTrench(data.adders.has_trench);
     if (data.adders.has_ground_mount !== undefined) setHasGroundMount(data.adders.has_ground_mount);

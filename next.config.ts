@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Allow large file uploads (CAD PDFs can be 50MB+)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
+    proxyClientMaxBodySize: '50mb',
+  },
 };
 
 export default nextConfig;

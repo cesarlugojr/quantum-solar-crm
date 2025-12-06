@@ -9,6 +9,7 @@ import { formatCurrency, PROJECT_STAGE_LABELS, REVENUE_TYPE_INFO, getProjectStag
 import { EditProjectDialog } from '@/components/crm/EditProjectDialog';
 import { DeleteRecordButton } from '@/components/crm/DeleteRecordButton';
 import { ProjectInvoicesSection } from '@/components/crm/ProjectInvoicesSection';
+import { ProjectProfitabilityCalculator } from '@/components/crm/ProjectProfitabilityCalculator';
 
 export const metadata: Metadata = {
   title: 'Project Details | Quantum Solar CRM',
@@ -116,6 +117,9 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
           <p className="text-sm text-gray-500 mt-1">{stageLabel}</p>
         </div>
       </div>
+
+      {/* Profitability Calculator */}
+      <ProjectProfitabilityCalculator project={project} />
 
       {/* Project Detail Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

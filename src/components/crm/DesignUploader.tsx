@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, FileText, X, Loader2, CheckCircle, AlertCircle, Cloud } from 'lucide-react';
+import { Upload, FileText, X, Loader2, CheckCircle, AlertCircle, Cloud, Zap, Clock, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Types for roof section data
@@ -62,12 +62,24 @@ export interface ExtractedDesignData {
   drive_url?: string;
 }
 
+// Processing stats from hybrid analyzer
+export interface ProcessingStats {
+  method: 'docling' | 'docling+patterns' | 'claude-text' | 'claude-vision';
+  confidence: number;
+  tokensUsed: number;
+  tokensSaved: number;
+  savingsPercentage: number;
+  processingTimeMs: number;
+  fallbackReason?: string;
+}
+
 interface DesignUploaderProps {
   onDataExtracted: (data: ExtractedDesignData) => void;
   onError?: (error: string) => void;
   className?: string;
   compact?: boolean;
   projectId?: string; // If provided, PDF will be uploaded to Google Drive
+  useHybridProcessor?: boolean; // Use Docling + Claude hybrid for token savings
 }
 
 export function DesignUploader({
@@ -76,10 +88,12 @@ export function DesignUploader({
   className = '',
   compact = false,
   projectId,
+  useHybridProcessor = true, // Default to hybrid for token savings
 }: DesignUploaderProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractedDesignData | null>(null);
+  const [processingStats, setProcessingStats] = useState<ProcessingStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -102,17 +116,26 @@ export function DesignUploader({
 
     setFile(selectedFile);
     setError(null);
+    setProcessingStats(null);
     setUploading(true);
 
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
-      // If projectId is provided, the API will also upload to Google Drive
-      if (projectId) {
+
+      // Use hybrid endpoint for Docling + Claude (token savings) or original endpoint
+      // Note: Hybrid endpoint only extracts data - it does NOT upload to Drive
+      // Use Project Documents section for Drive uploads
+      const endpoint = useHybridProcessor
+        ? '/api/crm/design-analyzer-hybrid'
+        : '/api/crm/design-analyzer';
+
+      // Only pass projectId to original endpoint (hybrid doesn't use it)
+      if (!useHybridProcessor && projectId) {
         formData.append('projectId', projectId);
       }
 
-      const response = await fetch('/api/crm/design-analyzer', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         body: formData,
       });
@@ -132,6 +155,11 @@ export function DesignUploader({
       if (result.success && result.data) {
         setExtractedData(result.data);
         onDataExtracted(result.data);
+
+        // Capture processing stats from hybrid endpoint
+        if (result.processing) {
+          setProcessingStats(result.processing);
+        }
       } else {
         throw new Error('Invalid response from analyzer');
       }
@@ -142,7 +170,7 @@ export function DesignUploader({
     } finally {
       setUploading(false);
     }
-  }, [onDataExtracted, onError, projectId]);
+  }, [onDataExtracted, onError, projectId, useHybridProcessor]);
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -174,8 +202,25 @@ export function DesignUploader({
   const clearFile = useCallback(() => {
     setFile(null);
     setExtractedData(null);
+    setProcessingStats(null);
     setError(null);
   }, []);
+
+  // Helper to format processing method for display
+  const formatMethod = (method: string) => {
+    switch (method) {
+      case 'docling':
+        return 'Docling Only';
+      case 'docling+patterns':
+        return 'Docling + Patterns';
+      case 'claude-text':
+        return 'Claude Text';
+      case 'claude-vision':
+        return 'Claude Vision';
+      default:
+        return method;
+    }
+  };
 
   // Compact version for inline use
   if (compact) {
@@ -328,6 +373,46 @@ export function DesignUploader({
             )}
           </div>
 
+          {/* Processing Stats from Hybrid Analyzer */}
+          {processingStats && (
+            <div className="mb-4 p-3 bg-gray-800/50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Cpu className="h-4 w-4 text-blue-400" />
+                <span className="text-sm text-gray-300 font-medium">Processing Stats</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div className="flex items-center gap-1">
+                  <Zap className="h-3 w-3 text-yellow-400" />
+                  <span className="text-gray-400">Method:</span>
+                  <span className="text-white">{formatMethod(processingStats.method)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3 text-blue-400" />
+                  <span className="text-gray-400">Time:</span>
+                  <span className="text-white">{(processingStats.processingTimeMs / 1000).toFixed(1)}s</span>
+                </div>
+                {processingStats.savingsPercentage > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Zap className="h-3 w-3 text-green-400" />
+                    <span className="text-gray-400">Savings:</span>
+                    <span className="text-green-400 font-medium">{processingStats.savingsPercentage}%</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-400">Confidence:</span>
+                  <span className={`font-medium ${processingStats.confidence >= 75 ? 'text-green-400' : processingStats.confidence >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                    {processingStats.confidence}%
+                  </span>
+                </div>
+              </div>
+              {processingStats.tokensUsed === 0 && (
+                <p className="text-xs text-green-400 mt-2">
+                  No Claude API tokens used - extracted with local OCR
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4 text-sm">
             {extractedData.customer_name && (
               <div>
@@ -363,6 +448,30 @@ export function DesignUploader({
               <div>
                 <p className="text-gray-400">Arrays</p>
                 <p className="text-white">{extractedData.array_count}</p>
+              </div>
+            )}
+            {extractedData.ahj_jurisdiction && (
+              <div>
+                <p className="text-gray-400">AHJ</p>
+                <p className="text-white">{extractedData.ahj_jurisdiction}</p>
+              </div>
+            )}
+            {extractedData.utility_company && (
+              <div>
+                <p className="text-gray-400">Utility</p>
+                <p className="text-white">{extractedData.utility_company}</p>
+              </div>
+            )}
+            {extractedData.inverter_model && (
+              <div>
+                <p className="text-gray-400">Inverter</p>
+                <p className="text-white">{extractedData.inverter_model}</p>
+              </div>
+            )}
+            {extractedData.module_model && (
+              <div>
+                <p className="text-gray-400">Module</p>
+                <p className="text-white">{extractedData.module_model}</p>
               </div>
             )}
           </div>
